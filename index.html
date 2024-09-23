@@ -6,7 +6,26 @@
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <script src="ton-connect-bridge.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@latest"></script>
+
+      <script>
+          var tonConnect;
+
+          async function connectTonWallet() {
+              tonConnect = new TonConnect();
+              await tonConnect.connectWallet();
+              const walletAddress = tonConnect.connectedAccount?.address;
+              console.log("Connected Wallet Address: ", walletAddress);
+
+              // Send the wallet address back to Unity
+              if (walletAddress) {
+                  // 'GameController' is the name of the GameObject that contains the script in Unity
+                  // 'OnWalletConnected' is the C# method we call, passing walletAddress as the parameter
+                  unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', walletAddress);
+              }
+          }
+      </script>
+
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
