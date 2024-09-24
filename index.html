@@ -8,23 +8,7 @@
     <link rel="stylesheet" href="TemplateData/style.css">
     <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
 
-      <!-- <script>
-          var tonConnect;
 
-          async function connectTonWallet() {
-              tonConnect = new TonConnect();
-              await tonConnect.connectWallet();
-              const walletAddress = tonConnect.connectedAccount?.address;
-              console.log("Connected Wallet Address: ", walletAddress);
-
-              // Send the wallet address back to Unity
-              if (walletAddress) {
-                  // 'GameController' is the name of the GameObject that contains the script in Unity
-                  // 'OnWalletConnected' is the C# method we call, passing walletAddress as the parameter
-                  unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', walletAddress);
-              }
-          }
-      </script> -->
 
   </head>
   <body>
