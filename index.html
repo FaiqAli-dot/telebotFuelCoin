@@ -6,12 +6,13 @@
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
-    <!-- Add TonConnect SDK script
-    <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script> -->
   </head>
 
   <body>
+    <div id="ton-connect"></div>
+
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=1080 height=2160 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
@@ -109,5 +110,28 @@
       // Append TonConnect SDK to the document and wait for it to load
       document.head.appendChild(tonConnectScript);
     </script>
+    <script>
+      const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+          manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json', // Use your actual manifest URL
+          buttonRootId: 'ton-connect'
+      });
+    </script>
+    <script>
+      function ConnectToTonWallet() {
+          // Open the TON Connect modal programmatically
+          tonConnectUI.connectWallet().then((connectedWallet) => {
+          console.log("Connected Wallet Address:", connectedWallet);
+              SendMessageToUnity(connectedWallet); // Send to Unity
+          }).catch((error) => {
+              console.error("Error connecting to wallet:", error);
+          });
+      }
+    
+      function SendMessageToUnity(walletAddress) {
+          // Send the wallet address back to Unity
+          unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', walletAddress);
+      }
+    </script>
+    
   </body>
 </html>
