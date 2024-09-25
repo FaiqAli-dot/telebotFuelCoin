@@ -6,10 +6,11 @@
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    
-    <!-- Load the TonConnect SDK first with 'defer' -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js" defer></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js" defer></script>
+
+    <!-- Load the TonConnect UI SDK -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <!-- Load the TonConnect SDK -->
+    <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
   </head>
 
   <body>
@@ -23,7 +24,7 @@
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
-      <div id="unity-warning"> </div>
+      <div id="unity-warning"></div>
       <div id="unity-footer">
         <div id="unity-webgl-logo"></div>
         <div id="unity-fullscreen-button"></div>
@@ -32,17 +33,33 @@
     </div>
 
     <script>
-      // Wait for DOMContentLoaded to ensure everything has loaded before initializing Unity
-      document.addEventListener('DOMContentLoaded', function () {
-          console.log("DOM fully loaded and parsed. Starting TonConnect and Unity initialization...");
+      // Wait until everything is loaded before initializing Unity
+      window.addEventListener('load', () => {
+        console.log("SDK and DOM Loaded.");
 
-          // Initialize TonConnect SDK and UI
+        if (typeof TON_CONNECT_UI !== 'undefined') {
+          console.log('TonConnect SDK loaded.');
+
+          // Initialize the TonConnect UI
           const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-              manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
-              buttonRootId: 'ton-connect'
+            manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect',
           });
 
-          // Unity setup and initialization
+          // Setup the function that Unity will call
+          window.ConnectToTonWallet = function() {
+            tonConnectUI.connectWallet()
+              .then(connectedWallet => {
+                console.log("Connected Wallet Address:", connectedWallet);
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet);
+              })
+              .catch(error => {
+                console.error("Error connecting to wallet:", error);
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
+              });
+          };
+
+          // Initialize Unity AFTER TonConnect is fully loaded
           var container = document.querySelector("#unity-container");
           var canvas = document.querySelector("#unity-canvas");
           var loadingBar = document.querySelector("#unity-loading-bar");
@@ -51,46 +68,46 @@
           var warningBanner = document.querySelector("#unity-warning");
 
           function unityShowBanner(msg, type) {
-              function updateBannerVisibility() {
-                  warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-              }
-              var div = document.createElement('div');
-              div.innerHTML = msg;
-              warningBanner.appendChild(div);
-              if (type == 'error') div.style = 'background: red; padding: 10px;';
-              else {
-                  if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-                  setTimeout(function () {
-                      warningBanner.removeChild(div);
-                      updateBannerVisibility();
-                  }, 5000);
-              }
-              updateBannerVisibility();
+            function updateBannerVisibility() {
+              warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+            }
+            var div = document.createElement('div');
+            div.innerHTML = msg;
+            warningBanner.appendChild(div);
+            if (type === 'error') div.style = 'background: red; padding: 10px;';
+            else {
+              if (type === 'warning') div.style = 'background: yellow; padding: 10px;';
+              setTimeout(function () {
+                warningBanner.removeChild(div);
+                updateBannerVisibility();
+              }, 5000);
+            }
+            updateBannerVisibility();
           }
 
           var buildUrl = "Build";
           var loaderUrl = buildUrl + "/projectFolder.loader.js";
           var config = {
-              dataUrl: buildUrl + "/projectFolder.data",
-              frameworkUrl: buildUrl + "/projectFolder.framework.js",
-              codeUrl: buildUrl + "/projectFolder.wasm",
-              streamingAssetsUrl: "StreamingAssets",
-              companyName: "DefaultCompany",
-              productName: "Telegram_Game",
-              productVersion: "0.1",
-              showBanner: unityShowBanner,
+            dataUrl: buildUrl + "/projectFolder.data",
+            frameworkUrl: buildUrl + "/projectFolder.framework.js",
+            codeUrl: buildUrl + "/projectFolder.wasm",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "DefaultCompany",
+            productName: "Telegram_Game",
+            productVersion: "0.1",
+            showBanner: unityShowBanner,
           };
 
           if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-              var meta = document.createElement('meta');
-              meta.name = 'viewport';
-              meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-              document.getElementsByTagName('head')[0].appendChild(meta);
-              container.className = "unity-mobile";
-              canvas.className = "unity-mobile";
+            var meta = document.createElement('meta');
+            meta.name = 'viewport';
+            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+            document.getElementsByTagName('head')[0].appendChild(meta);
+            container.className = "unity-mobile";
+            canvas.className = "unity-mobile";
           } else {
-              canvas.style.width = "1080px";
-              canvas.style.height = "2160px";
+            canvas.style.width = "1080px";
+            canvas.style.height = "2160px";
           }
 
           loadingBar.style.display = "block";
@@ -98,34 +115,22 @@
           var script = document.createElement("script");
           script.src = loaderUrl;
           script.onload = () => {
-              createUnityInstance(canvas, config, (progress) => {
-                  progressBarFull.style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                  loadingBar.style.display = "none";
-                  fullscreenButton.onclick = () => {
-                      unityInstance.SetFullscreen(1);
-                  };
-              }).catch((message) => {
-                  alert(message);
-              });
+            createUnityInstance(canvas, config, (progress) => {
+              progressBarFull.style.width = 100 * progress + "%";
+            }).then((unityInstance) => {
+              loadingBar.style.display = "none";
+              fullscreenButton.onclick = () => {
+                unityInstance.SetFullscreen(1);
+              };
+            }).catch((message) => {
+              alert(message);
+            });
           };
 
           document.body.appendChild(script);
-
-          // Function to connect Ton Wallet programmatically from Unity
-          function ConnectToTonWallet() {
-              tonConnectUI.connectWallet().then((connectedWallet) => {
-                  console.log("Connected Wallet Address:", connectedWallet);
-                  SendMessageToUnity(connectedWallet); // Send wallet address to Unity
-              }).catch((error) => {
-                  console.error("Error connecting to wallet:", error);
-              });
-          }
-
-          function SendMessageToUnity(walletAddress) {
-              // Send the wallet address back to Unity
-              unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', walletAddress);
-          }
+        } else {
+          console.error('TonConnect SDK is not available.');
+        }
       });
     </script>
   </body>
