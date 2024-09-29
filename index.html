@@ -14,7 +14,7 @@
   </head>
 
   <body>
-    <!-- <div id="ton-connect"></div>+ -->
+    <div id="ton-connect" style="display: none;"></div>
 
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=1080 height=2160 tabindex="-1"></canvas>
@@ -43,7 +43,7 @@
           // Initialize the TonConnect UI
           const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
-            // buttonRootId: 'ton-connect',
+            buttonRootId: 'ton-connect',
           });
 
           // Setup the function that Unity will call
