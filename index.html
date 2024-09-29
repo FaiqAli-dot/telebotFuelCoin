@@ -6,9 +6,11 @@
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Add TonConnect SDK here -->
+    
+    <!-- Include the TonConnect SDK before your script -->
     <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
   </head>
+
   <body>
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=1080 height=2160 tabindex="-1"></canvas>
@@ -27,7 +29,6 @@
     </div>
 
     <script>
-      // Load Unity WebGL Instance
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
       var loadingBar = document.querySelector("#unity-loading-bar");
@@ -97,7 +98,6 @@
       };
 
       document.body.appendChild(script);
-
     </script>
 
     <!-- Initialize TonConnect function used in jslib -->
@@ -107,7 +107,7 @@
           console.log("Initializing TON Connect...");
           
           const tonConnectUI = new TonConnect({
-            manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/'
+            manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json' // Make sure the URL is correct
           });
 
           // Connect wallet
@@ -125,5 +125,6 @@
         }
       }
     </script>
+
   </body>
 </html>
