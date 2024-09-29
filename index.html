@@ -131,24 +131,29 @@
     });
   }
 
+  async function initializeTonConnect() {
+    if (!isSdkLoaded) {
+      await loadTonConnectSDK();
+    }
+
+    if (typeof TonConnect === 'undefined') {
+      throw new Error("TonConnect is not defined. SDK might not be loaded correctly.");
+    }
+
+    tonConnectInstance = new TonConnect({
+      manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json'
+    });
+    console.log("TonConnect initialized successfully");
+  }
+
   async function ConnectToTonWallet() {
     try {
-      if (!isSdkLoaded) {
-        await loadTonConnectSDK();
-      }
-
-      if (typeof TonConnect === 'undefined') {
-        throw new Error("TonConnect is not defined. SDK might not be loaded correctly.");
-      }
-
-      console.log("Initializing TON Connect...");
-      
       if (!tonConnectInstance) {
-        tonConnectInstance = new TonConnect({
-          manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json'
-        });
+        await initializeTonConnect();
       }
 
+      console.log("Connecting to TON Wallet...");
+      
       // Connect wallet
       const wallet = await tonConnectInstance.connect();
       console.log("Wallet connected:", wallet);
@@ -169,8 +174,8 @@
     }
   }
 
-  // Load SDK when the page loads
-  window.addEventListener('load', loadTonConnectSDK);
+  // Initialize TonConnect when the page loads
+  window.addEventListener('load', initializeTonConnect);
 </script>
 
   </body>
