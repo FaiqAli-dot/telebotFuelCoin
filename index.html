@@ -6,24 +6,10 @@
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <!-- Include the TonConnect SDK -->
-    <!-- <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script> -->
-    
-    <!-- Check SDK load -->
-    <!-- <script>
-      window.addEventListener('load', function() {
-        if (typeof TonConnect !== 'undefined') {
-          console.log("TonConnect SDK is successfully loaded.");
-        } else {
-          console.error("TonConnect SDK failed to load.");
-        }
-      });
-    </script> -->
   </head>
-
   <body>
     <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=1080 height=2160 tabindex="-1"></canvas>
+      <canvas id="unity-canvas" width=1080 height=2160></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
@@ -37,8 +23,7 @@
         <div id="unity-build-title">Telegram_Game</div>
       </div>
     </div>
-
-    <!-- <script>
+    <script>
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
       var loadingBar = document.querySelector("#unity-loading-bar");
@@ -46,6 +31,12 @@
       var fullscreenButton = document.querySelector("#unity-fullscreen-button");
       var warningBanner = document.querySelector("#unity-warning");
 
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
       function unityShowBanner(msg, type) {
         function updateBannerVisibility() {
           warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
@@ -67,29 +58,43 @@
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/projectFolder.loader.js";
       var config = {
-        dataUrl: buildUrl + "/projectFolder.data",
-        frameworkUrl: buildUrl + "/projectFolder.framework.js",
-        codeUrl: buildUrl + "/projectFolder.wasm",
+        dataUrl: buildUrl + "/projectFolder.data.gz",
+        frameworkUrl: buildUrl + "/projectFolder.framework.js.gz",
+        codeUrl: buildUrl + "/projectFolder.wasm.gz",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "Telegram_Game",
-        productVersion: "0.1",
+        productVersion: "1.0",
         showBanner: unityShowBanner,
       };
 
+      // By default Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
         container.className = "unity-mobile";
         canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
       } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+
         canvas.style.width = "1080px";
         canvas.style.height = "2160px";
       }
 
-      canvas.style.background = "url('" + buildUrl + "/projectFolder.jpg') center / cover";
       loadingBar.style.display = "block";
 
       var script = document.createElement("script");
@@ -106,77 +111,7 @@
           alert(message);
         });
       };
-
       document.body.appendChild(script);
     </script>
-
-<script>
-  let tonConnectInstance;
-  let isSdkLoaded = false;
-
-  function loadTonConnectSDK() {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = "https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js";
-      script.onload = () => {
-        console.log("TonConnect SDK loaded successfully");
-        isSdkLoaded = true;
-        resolve();
-      };
-      script.onerror = () => {
-        console.error("Failed to load TonConnect SDK");
-        reject(new Error("Failed to load TonConnect SDK"));
-      };
-      document.body.appendChild(script);
-    });
-  }
-
-  async function initializeTonConnect() {
-    if (!isSdkLoaded) {
-      await loadTonConnectSDK();
-    }
-
-    if (typeof TonConnect === 'undefined') {
-      throw new Error("TonConnect is not defined. SDK might not be loaded correctly.");
-    }
-
-    tonConnectInstance = new TonConnect({
-      manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json'
-    });
-    console.log("TonConnect initialized successfully");
-  }
-
-  async function ConnectToTonWallet() {
-    try {
-      if (!tonConnectInstance) {
-        await initializeTonConnect();
-      }
-
-      console.log("Connecting to TON Wallet...");
-      
-      // Connect wallet
-      const wallet = await tonConnectInstance.connect();
-      console.log("Wallet connected:", wallet);
-
-      // Send the connected wallet's address to Unity:
-      if (typeof unityInstance !== 'undefined') {
-        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', wallet.account.address);
-      } else {
-        console.warn("Unity instance not available. Unable to send wallet address.");
-      }
-
-    } catch (error) {
-      console.error("Error in ConnectToTonWallet:", error);
-      // Optionally, send error to Unity
-      if (typeof unityInstance !== 'undefined') {
-        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionError', error.message);
-      }
-    }
-  }
-
-  // Initialize TonConnect when the page loads
-  window.addEventListener('load', initializeTonConnect);
-</script> -->
-
   </body>
 </html>
