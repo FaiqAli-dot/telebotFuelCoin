@@ -110,39 +110,68 @@
       document.body.appendChild(script);
     </script>
 
-    <!-- Initialize TonConnect function used in jslib -->
-    <script>
-      let tonConnectInstance;
+<script>
+  let tonConnectInstance;
+  let isSdkLoaded = false;
 
-      function ConnectToTonWallet() {
-        try {
-          console.log("Initializing TON Connect...");
-          
-          if (!tonConnectInstance) {
-            tonConnectInstance = new TonConnect({
-              manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json'
-            });
-          }
+  function loadTonConnectSDK() {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = "https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js";
+      script.onload = () => {
+        console.log("TonConnect SDK loaded successfully");
+        isSdkLoaded = true;
+        resolve();
+      };
+      script.onerror = () => {
+        console.error("Failed to load TonConnect SDK");
+        reject(new Error("Failed to load TonConnect SDK"));
+      };
+      document.body.appendChild(script);
+    });
+  }
 
-          // Connect wallet
-          tonConnectInstance.connect().then((wallet) => {
-            console.log("Wallet connected:", wallet);
-
-            // Send the connected wallet's address to Unity:
-            if (typeof unityInstance !== 'undefined') {
-              unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', wallet.account.address);
-            } else {
-              console.warn("Unity instance not available. Unable to send wallet address.");
-            }
-          }).catch((error) => {
-            console.error("Error connecting to TON Wallet:", error);
-          });
-
-        } catch (error) {
-          console.error("Error in ConnectToTonWallet:", error);
-        }
+  async function ConnectToTonWallet() {
+    try {
+      if (!isSdkLoaded) {
+        await loadTonConnectSDK();
       }
-    </script>
+
+      if (typeof TonConnect === 'undefined') {
+        throw new Error("TonConnect is not defined. SDK might not be loaded correctly.");
+      }
+
+      console.log("Initializing TON Connect...");
+      
+      if (!tonConnectInstance) {
+        tonConnectInstance = new TonConnect({
+          manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json'
+        });
+      }
+
+      // Connect wallet
+      const wallet = await tonConnectInstance.connect();
+      console.log("Wallet connected:", wallet);
+
+      // Send the connected wallet's address to Unity:
+      if (typeof unityInstance !== 'undefined') {
+        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', wallet.account.address);
+      } else {
+        console.warn("Unity instance not available. Unable to send wallet address.");
+      }
+
+    } catch (error) {
+      console.error("Error in ConnectToTonWallet:", error);
+      // Optionally, send error to Unity
+      if (typeof unityInstance !== 'undefined') {
+        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionError', error.message);
+      }
+    }
+  }
+
+  // Load SDK when the page loads
+  window.addEventListener('load', loadTonConnectSDK);
+</script>
 
   </body>
 </html>
