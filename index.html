@@ -7,8 +7,19 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     
-    <!-- Include the TonConnect SDK before your script -->
+    <!-- Include the TonConnect SDK -->
     <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
+    
+    <!-- Check SDK load -->
+    <script>
+      window.addEventListener('load', function() {
+        if (typeof TonConnect !== 'undefined') {
+          console.log("TonConnect SDK is successfully loaded.");
+        } else {
+          console.error("TonConnect SDK failed to load.");
+        }
+      });
+    </script>
   </head>
 
   <body>
