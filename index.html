@@ -48,6 +48,8 @@
 
           // Setup the function that Unity will call
           window.ConnectToTonWallet = function() {
+            console.log("unityInstance: ", unityInstance);
+            
             tonConnectUI.connectWallet()
               .then(connectedWallet => {
                 const walletAddress = connectedWallet.address; // Extract the address field
