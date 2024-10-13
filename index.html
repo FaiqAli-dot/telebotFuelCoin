@@ -31,9 +31,7 @@
         <div id="unity-build-title">Telegram_Game</div>
       </div>
     </div>
-    <script>
-      var unityInstance = UnityLoader.instantiate("unityContainer", "Build/YourBuildName.json", {onProgress: UnityProgress});
-    </script>
+
     <script>
       // Wait until everything is loaded before initializing Unity
       window.addEventListener('load', () => {
@@ -50,36 +48,17 @@
 
           // Setup the function that Unity will call
           window.ConnectToTonWallet = function() {
-
-            if (typeof unityInstance === 'undefined') {
-            throw new Error("Unity instance is not ready. Ensure Unity WebGL is fully loaded.");
-        }
-
-    try {
-        // Check if there is an existing connected wallet using 'tonConnectUI.account'
-        if (tonConnectUI.account) {
-            console.log("Wallet is already connected.");
-            const connectedWallet = tonConnectUI.account;  // Get the connected wallet account details
-            unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.address);  // Send the address to Unity
-        } else {
-            // If not connected, initiate a new connection
             tonConnectUI.connectWallet()
               .then(connectedWallet => {
-                console.log("Connected Wallet Address:", connectedWallet);
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.address);
+                const walletAddress = connectedWallet.address; // Extract the address field
+                console.log("Connected Wallet Address:", walletAddress);
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', walletAddress);
               })
               .catch(error => {
                 console.error("Error connecting to wallet:", error);
                 unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
               });
-        }
-    } catch (error) {
-        console.error("Error in ConnectToTonWallet:", error);
-        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
-    }
-};
-
-
+          };
           window.DisconnectTonWallet = function() {
               try {
                   // Assuming you're using the TonConnect SDK and it has a disconnect method
