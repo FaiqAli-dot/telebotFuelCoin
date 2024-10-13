@@ -50,7 +50,7 @@
           window.ConnectToTonWallet = function() {
     try {
         // Check if the wallet is already connected
-        if (tonConnectUI.isConnected()) {
+        if (tonConnectUI.Connected()) {
             console.log("Wallet is already connected.");
             const connectedWallet = tonConnectUI.getConnectedWallet();
             unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.address);  // Send the address to Unity
