@@ -31,7 +31,9 @@
         <div id="unity-build-title">Telegram_Game</div>
       </div>
     </div>
-
+    <script>
+      var unityInstance = UnityLoader.instantiate("unityContainer", "Build/YourBuildName.json", {onProgress: UnityProgress});
+    </script>
     <script>
       // Wait until everything is loaded before initializing Unity
       window.addEventListener('load', () => {
@@ -48,6 +50,11 @@
 
           // Setup the function that Unity will call
           window.ConnectToTonWallet = function() {
+
+            if (typeof unityInstance === 'undefined') {
+            throw new Error("Unity instance is not ready. Ensure Unity WebGL is fully loaded.");
+        }
+
     try {
         // Check if there is an existing connected wallet using 'tonConnectUI.account'
         if (tonConnectUI.account) {
