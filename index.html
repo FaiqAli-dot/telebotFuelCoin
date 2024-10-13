@@ -50,14 +50,33 @@
           window.ConnectToTonWallet = function() {
             tonConnectUI.connectWallet()
               .then(connectedWallet => {
-                console.log("Connected Wallet Address:", connectedWallet);
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet);
+                const walletAddress = connectedWallet.address; // Extract the address field
+                console.log("Connected Wallet Address:", walletAddress);
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', walletAddress);
               })
               .catch(error => {
                 console.error("Error connecting to wallet:", error);
                 unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
               });
           };
+          window.DisconnectTonWallet = function() {
+              try {
+                  // Assuming you're using the TonConnect SDK and it has a disconnect method
+                  tonConnectUI.disconnectWallet()
+                    .then(() => {
+                        console.log("Wallet disconnected successfully.");
+                        unityInstance.SendMessage('TonWalletManager', 'OnWalletDisconnected');
+                    })
+                    .catch(error => {
+                        console.error("Error disconnecting wallet:", error);
+                        unityInstance.SendMessage('TonWalletManager', 'OnWalletDisconnectFailed', error.message);
+                    });
+              } catch (error) {
+                  console.error("Error in DisconnectTonWallet:", error);
+                  unityInstance.SendMessage('TonWalletManager', 'OnWalletDisconnectFailed', error.message);
+              }
+          };
+
 
           // Initialize Unity AFTER TonConnect is fully loaded
           var container = document.querySelector("#unity-container");
