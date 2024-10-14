@@ -4,154 +4,36 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | Telegram_Game</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-
-    <!-- Load the TonConnect UI SDK -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <!-- Load the TonConnect SDK -->
-    <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
   </head>
-
-  <body>
-    <div id="ton-connect" style="display: none;"></div>
-
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=1080 height=2160 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"></div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Telegram_Game</div>
-      </div>
-    </div>
-
+  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+    <canvas id="unity-canvas" width=1080 height=2160 tabindex="-1" style="width: 1080px; height: 2160px; background: url('Build/projectFolder.jpg') center / cover"></canvas>
+    <script src="Build/projectFolder.loader.js"></script>
     <script>
-      // Wait until everything is loaded before initializing Unity
-      window.addEventListener('load', () => {
-        console.log("SDK and DOM Loaded.");
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
 
-        if (typeof TON_CONNECT_UI !== 'undefined') {
-          console.log('TonConnect SDK loaded.');
+        var canvas = document.querySelector("#unity-canvas");
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.position = "fixed";
 
-          // Initialize the TonConnect UI
-          const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect',
-          });
+        document.body.style.textAlign = "left";
+      }
 
-          // Setup the function that Unity will call
-          window.ConnectToTonWallet = function() {
-            // console.log("unityInstance: ", unityInstance);
-            
-            tonConnectUI.connectWallet()
-              .then(connectedWallet => {
-                const walletAddress = connectedWallet.address; // Extract the address field
-                console.log("Connected Wallet Address:", walletAddress);
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', walletAddress);
-              })
-              .catch(error => {
-                console.error("Error connecting to wallet:", error);
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
-              });
-          };
-          window.DisconnectTonWallet = function() {
-              try {
-                  // Assuming you're using the TonConnect SDK and it has a disconnect method
-                  tonConnectUI.disconnectWallet()
-                    .then(() => {
-                        console.log("Wallet disconnected successfully.");
-                        unityInstance.SendMessage('TonWalletManager', 'OnWalletDisconnected');
-                    })
-                    .catch(error => {
-                        console.error("Error disconnecting wallet:", error);
-                        unityInstance.SendMessage('TonWalletManager', 'OnWalletDisconnectFailed', error.message);
-                    });
-              } catch (error) {
-                  console.error("Error in DisconnectTonWallet:", error);
-                  unityInstance.SendMessage('TonWalletManager', 'OnWalletDisconnectFailed', error.message);
-              }
-          };
-
-
-          // Initialize Unity AFTER TonConnect is fully loaded
-          var container = document.querySelector("#unity-container");
-          var canvas = document.querySelector("#unity-canvas");
-          var loadingBar = document.querySelector("#unity-loading-bar");
-          var progressBarFull = document.querySelector("#unity-progress-bar-full");
-          var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-          var warningBanner = document.querySelector("#unity-warning");
-
-          function unityShowBanner(msg, type) {
-            function updateBannerVisibility() {
-              warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-            }
-            var div = document.createElement('div');
-            div.innerHTML = msg;
-            warningBanner.appendChild(div);
-            if (type === 'error') div.style = 'background: red; padding: 10px;';
-            else {
-              if (type === 'warning') div.style = 'background: yellow; padding: 10px;';
-              setTimeout(function () {
-                warningBanner.removeChild(div);
-                updateBannerVisibility();
-              }, 5000);
-            }
-            updateBannerVisibility();
-          }
-
-          var buildUrl = "Build";
-          var loaderUrl = buildUrl + "/projectFolder.loader.js";
-          var config = {
-            dataUrl: buildUrl + "/projectFolder.data",
-            frameworkUrl: buildUrl + "/projectFolder.framework.js",
-            codeUrl: buildUrl + "/projectFolder.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "Telegram_Game",
-            productVersion: "0.1",
-            showBanner: unityShowBanner,
-          };
-
-          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            var meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-            document.getElementsByTagName('head')[0].appendChild(meta);
-            container.className = "unity-mobile";
-            canvas.className = "unity-mobile";
-          } else {
-            canvas.style.width = "1080px";
-            canvas.style.height = "2160px";
-          }
-
-          loadingBar.style.display = "block";
-
-          var script = document.createElement("script");
-          script.src = loaderUrl;
-          script.onload = () => {
-            createUnityInstance(canvas, config, (progress) => {
-              progressBarFull.style.width = 100 * progress + "%";
-            }).then((unityInstance) => {
-              loadingBar.style.display = "none";
-              fullscreenButton.onclick = () => {
-                unityInstance.SetFullscreen(1);
-              };
-            }).catch((message) => {
-              alert(message);
-            });
-          };
-
-          document.body.appendChild(script);
-        } else {
-          console.error('TonConnect SDK is not available.');
-        }
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "Build/projectFolder.data",
+        frameworkUrl: "Build/projectFolder.framework.js",
+        codeUrl: "Build/projectFolder.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "Telegram_Game",
+        productVersion: "0.1",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
       });
     </script>
   </body>
