@@ -73,27 +73,31 @@
 
           // Setup the function that Unity will call to connect to Ton Wallet
           window.ConnectToTonWallet = function() {
+  if (!tonConnectUI.wallet) {
+    // Open the modal to select/connect a wallet
+    tonConnectUI.openModal().then(() => {
+      // After the modal is closed, get the connected wallet
+      tonConnectUI.getWallets().then((wallets) => {
+        if (wallets.length > 0) {
+          const connectedWallet = wallets[0]; // Use the first available wallet
+          console.log("Connected Wallet Address:", connectedWallet);
+          unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+        } else {
+          console.error("No wallets available.");
+        }
+      }).catch((error) => {
+        console.error("Error getting wallets:", error);
+        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
+      });
+    }).catch((error) => {
+      console.error("Error opening modal:", error);
+    });
+  } else {
+    console.log("Wallet already connected:", tonConnectUI.wallet);
+    unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', tonConnectUI.wallet.account.address);
+  }
+};
 
-            if (!unityInstance) {
-                console.error("Unity instance is not initialized.");
-                return;
-            }else{
-              console.log("unityInstance: ", unityInstance);
-              
-            }
-
-
-
-            tonConnectUI.openModal()  // Use openModal instead of connectWallet
-                .then(connectedWallet => {
-                    console.log("Connected Wallet Address:", connectedWallet);
-                    unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-                })
-                .catch(error => {
-                    console.error("Error connecting to wallet:", error);
-                    unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
-                });
-        };
 
           // Setup the function to disconnect from Ton Wallet
           window.DisconnectTonWallet = function() {
@@ -169,7 +173,7 @@
 
 
 
-          
+
           var script = document.createElement("script");
           script.src = loaderUrl;
           script.onload = () => {
