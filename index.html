@@ -73,16 +73,16 @@
 
           // Setup the function that Unity will call to connect to Ton Wallet
           window.ConnectToTonWallet = function() {
-            tonConnectUI.connectWallet()
-              .then(connectedWallet => {
-                console.log("Connected Wallet Address:", connectedWallet);
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-              })
-              .catch(error => {
-                console.error("Error connecting to wallet:", error);
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
-              });
-          };
+            tonConnectUI.openModal()  // Use openModal instead of connectWallet
+                .then(connectedWallet => {
+                    console.log("Connected Wallet Address:", connectedWallet);
+                    unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+                })
+                .catch(error => {
+                    console.error("Error connecting to wallet:", error);
+                    unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
+                });
+        };
 
           // Setup the function to disconnect from Ton Wallet
           window.DisconnectTonWallet = function() {
