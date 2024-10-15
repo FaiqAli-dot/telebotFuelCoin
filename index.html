@@ -31,7 +31,32 @@
         <div id="unity-build-title">Telegram_Game</div>
       </div>
     </div>
+    <script>
+      var unityInstance = null;
+  
+      function initializeUnity() {
+          unityInstance = UnityLoader.instantiate("unityContainer", "Build/YourBuildName.json", {
+              onProgress: UnityProgress,
+              Module: {
+                  onRuntimeInitialized: function() {
+                      console.log("Unity WebGL is ready!");
+                      // Now it's safe to use unityInstance here
+                      if (unityInstance) {
+                          // Safe to call methods on unityInstance now
+                          console.log("Unity Instance is ready:", unityInstance);
+                      }else{
+                        console.log("Unity Instance not loaded not loaded not loaded not loaded:");
 
+                      }
+                  }
+              }
+          });
+      }
+  
+      window.onload = function() {
+          initializeUnity();
+      };
+  </script>
     <script>
       // Wait until everything is loaded before initializing Unity
       window.addEventListener('load', () => {
