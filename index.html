@@ -77,6 +77,9 @@
             if (!unityInstance) {
                 console.error("Unity instance is not initialized.");
                 return;
+            }else{
+              console.log("unityInstance: ", unityInstance);
+              
             }
             tonConnectUI.openModal()  // Use openModal instead of connectWallet
                 .then(connectedWallet => {
