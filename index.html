@@ -25,7 +25,7 @@
     </div>
 
     <!-- TonConnect Script -->
-    <script src="https://cdn.tonconnect.dev/tonconnect-ui.bundle.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
 
     <!-- TonConnect Manifest -->
     <script>
@@ -47,7 +47,7 @@
         };
 
         // Function to disconnect the wallet
-        window.DisconnectTonWallet = function () {
+        window.DisconnectTonWallet = function () { 
             tonConnectUI.disconnect();
             unityInstance.SendMessage('TonWalletManager', 'OnWalletDisconnect');
             console.log("Wallet disconnected");
