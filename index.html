@@ -34,28 +34,28 @@
     <script>
       var unityInstance = null;
   
-      function initializeUnity() {
-          unityInstance = UnityLoader.instantiate("unityContainer", "Build/YourBuildName.json", {
-              onProgress: UnityProgress,
-              Module: {
-                  onRuntimeInitialized: function() {
-                      console.log("Unity WebGL is ready!");
-                      // Now it's safe to use unityInstance here
-                      if (unityInstance) {
-                          // Safe to call methods on unityInstance now
-                          console.log("Unity Instance is ready:", unityInstance);
-                      }else{
-                        console.log("Unity Instance not loaded not loaded not loaded not loaded:");
+      // function initializeUnity() {
+      //     unityInstance = UnityLoader.instantiate("unityContainer", "Build/projectFolder.json", {
+      //         onProgress: UnityProgress,
+      //         Module: {
+      //             onRuntimeInitialized: function() {
+      //                 console.log("Unity WebGL is ready!");
+      //                 // Now it's safe to use unityInstance here
+      //                 if (unityInstance) {
+      //                     // Safe to call methods on unityInstance now
+      //                     console.log("Unity Instance is ready:", unityInstance);
+      //                 }else{
+      //                   console.log("Unity Instance not loaded not loaded not loaded not loaded:");
 
-                      }
-                  }
-              }
-          });
-      }
+      //                 }
+      //             }
+      //         }
+      //     });
+      // }
   
-      window.onload = function() {
-          initializeUnity();
-      };
+      // window.onload = function() {
+      //     initializeUnity();
+      // };
   </script>
     <script>
       // Wait until everything is loaded before initializing Unity
@@ -84,7 +84,7 @@
         console.log("Connected Wallet Address:", connectedWallet.account.address);
         unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
       } else {
-        console.error("Error: No connected wallet account found.");
+        console.log("Error: No connected wallet account found.");
       }
     }).catch((error) => {
       console.error("Error opening modal:", error);
