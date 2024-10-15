@@ -76,25 +76,28 @@
   if (!tonConnectUI.wallet) {
     // Open the modal to select/connect a wallet
     tonConnectUI.openModal().then(() => {
-      // After the modal is closed, get the connected wallet
-      tonConnectUI.getWallets().then((wallets) => {
-        if (wallets.length > 0) {
-          const connectedWallet = wallets[0]; // Use the first available wallet
-          console.log("Connected Wallet Address:", connectedWallet);
-          unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-        } else {
-          console.error("No wallets available.");
-        }
-      }).catch((error) => {
-        console.error("Error getting wallets:", error);
-        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
-      });
+      // Get the wallet information after the modal is closed
+      const connectedWallet = tonConnectUI.wallet;  // Access the connected wallet directly
+      
+      if (connectedWallet && connectedWallet.account) {
+        // Ensure that the account and address exist
+        console.log("Connected Wallet Address:", connectedWallet.account.address);
+        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+      } else {
+        console.error("Error: No connected wallet account found.");
+      }
     }).catch((error) => {
       console.error("Error opening modal:", error);
     });
   } else {
-    console.log("Wallet already connected:", tonConnectUI.wallet);
-    unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', tonConnectUI.wallet.account.address);
+    // If already connected, use the wallet information
+    const connectedWallet = tonConnectUI.wallet;
+    if (connectedWallet && connectedWallet.account) {
+      console.log("Wallet already connected:", connectedWallet.account.address);
+      unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+    } else {
+      console.error("No account information available in the connected wallet.");
+    }
   }
 };
 
