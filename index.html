@@ -83,7 +83,7 @@
             }
 
 
-            
+
             tonConnectUI.openModal()  // Use openModal instead of connectWallet
                 .then(connectedWallet => {
                     console.log("Connected Wallet Address:", connectedWallet);
@@ -119,6 +119,7 @@
           var progressBarFull = document.querySelector("#unity-progress-bar-full");
           var fullscreenButton = document.querySelector("#unity-fullscreen-button");
           var warningBanner = document.querySelector("#unity-warning");
+          var unityInstance = null;
 
           function unityShowBanner(msg, type) {
             function updateBannerVisibility() {
@@ -168,9 +169,10 @@
           var script = document.createElement("script");
           script.src = loaderUrl;
           script.onload = () => {
-            createUnityInstance(canvas, config, (progress) => {
+          createUnityInstance(canvas, config, (progress) => {
               progressBarFull.style.width = 100 * progress + "%";
-            }).then((unityInstance) => {
+          }).then((instance) => {
+              unityInstance = instance; // Update global unityInstance here
               console.log("ASDASDASDASD: ", unityInstance);
               loadingBar.style.display = "none";
               fullscreenButton.onclick = () => {
