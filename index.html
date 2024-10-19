@@ -103,7 +103,7 @@
 
 window.addEventListener('popstate', function (event) {
     // This will trigger when the user presses the back button
-    alert("Back button pressed. Default behavior prevented.");
+    console.log("Back button pressed. Default behavior prevented.");
     // You can send a message to Unity here to block or override the behavior
     unityInstance.SendMessage('Controller', 'OnBackButtonPressed');
 });
