@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
@@ -33,237 +32,230 @@
       </div>
     </div>
     <script>
-function handleSSE() {
-  const eventSource = new EventSource('https://fuelup.duckdns.org/events');
+    // Unity-JavaScript Communication Bridge
+    let unityInstance = null;
 
-  eventSource.onmessage = function (event) {
-    console.log('Message from servers: ', event.data);
-    // Handle the message here, possibly sending it to Unity
-    if (unityInstance) {
-      unityInstance.SendMessage('YourUnityObject', 'YourUnityMethod', event.data);
-    }
-  };
-
-  eventSource.onerror = function (event) {
-    console.error('SSE error occurred:', event);
-    eventSource.close(); // Close the connection on error
-    
-    // Add a retry mechanism with exponential backoff
-    let retryDelay = 1000;
-    const maxRetryDelay = 30000; // Maximum delay of 30 seconds
-
-    function retryConnection() {
-      console.log(`Attempting to reconnect SSE in ${retryDelay / 5000} seconds...`);
-      setTimeout(() => {
-        handleSSE(); // Retry connection
-      }, retryDelay);
-
-      // Increase the delay for the next attempt, but don't exceed maxRetryDelay
-      retryDelay = Math.min(retryDelay * 2, maxRetryDelay);
+    function onUnityLoaded(unity) {
+      console.log("Unity loaded and ready");
+      unityInstance = unity;
+      window.unityInstance = unity; // Make it globally accessible if needed
     }
 
-    retryConnection();
-  };
-
-  // Add an onopen handler to reset the retry delay when a connection is successful
-  eventSource.onopen = function (event) {
-    console.log('SSE connection opened successfully');
-    // Reset retry delay here if you keep it as a global variable
-  };
-}
-
-// Call the function to initialize SSE handling
-handleSSE();
-    </script>
-    <script>
-      var unityInstance = null;
-
-      // SSE event error handling - Log the error gracefully
-      function handleSSEError(event) {
-        console.error('SSE Event Error:', event);
-        // Optional retry logic or error handling can be added here
-      }
-
-      // Wait until everything is loaded before initializing Unity and TonConnect
-      window.addEventListener('load', () => {
-        console.log("SDK and DOM Loaded.");
-
-        if (typeof TON_CONNECT_UI !== 'undefined') {
-          console.log('TonConnect SDK loaded.');
-
-          // Initialize the TonConnect UI
-          const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect',
-          });
-
-          // // Setup the function that Unity will call to connect to Ton Wallet
-          // window.ConnectToTonWallet = function() {
-          //   if (!tonConnectUI.wallet) {
-          //     // Open the modal to select/connect a wallet
-          //     tonConnectUI.openModal().then(() => {
-          //       const connectedWallet = tonConnectUI.wallet;  // Access the connected wallet directly
-
-          //       if (connectedWallet && connectedWallet.account) {
-          //         console.log("Connected Wallet Address:", connectedWallet.account.address);
-          //         unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-          //       } else {
-          //         console.log("Error: No connected wallet account found.");
-          //       }
-          //     }).catch((error) => {
-          //       console.error("Error opening modal:", error);
-          //     });
-          //   } else {
-          //     // If already connected, use the wallet information
-          //     const connectedWallet = tonConnectUI.wallet;
-          //     if (connectedWallet && connectedWallet.account) {
-          //       console.log("Wallet already connected:", connectedWallet.account.address);
-          //       unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-          //     } else {
-          //       console.error("No account information available in the connected wallet.");
-          //     }
-          //   }
-          // };
-          window.ConnectToTonWallet = async function() {
-      try {
-        if (!tonConnectUI.wallet) {
-          await tonConnectUI.openModal();
+    function sendMessageToUnity(objectName, methodName, parameter) {
+      if (unityInstance) {
+        try {
+          unityInstance.SendMessage(objectName, methodName, parameter);
+        } catch (error) {
+          console.error(`Error sending message to Unity object ${objectName}:`, error);
         }
+      } else {
+        console.warn("Unity instance not ready. Message not sent.");
+      }
+    }
 
-        const connectedWallet = tonConnectUI.wallet;
-        if (connectedWallet && connectedWallet.account) {
-          console.log("Connected Wallet Address:", connectedWallet.account.address);
-          unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+    // SSE Handling
+    let eventSource;
+    let retryCount = 0;
+    const maxRetries = 5;
+
+    function handleSSE() {
+      eventSource = new EventSource('https://fuelup.duckdns.org/events');
+
+      eventSource.onmessage = function (event) {
+        console.log('Message from servers: ', event.data);
+        retryCount = 0; // Reset retry count on successful message
+        sendMessageToUnity('SSEManager', 'OnServerMessage', event.data);
+      };
+
+      eventSource.onerror = function (event) {
+        console.error('SSE error occurred:', event);
+        eventSource.close();
+        
+        if (retryCount < maxRetries) {
+          const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+          console.log(`Attempting to reconnect SSE in ${retryDelay / 1000} seconds... (Attempt ${retryCount + 1}/${maxRetries})`);
+          setTimeout(() => {
+            retryCount++;
+            handleSSE();
+          }, retryDelay);
         } else {
-          console.error("Error: No connected wallet account found.");
-          unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No account found');
+          console.error('Max retries reached. SSE connection failed.');
+          sendMessageToUnity('SSEManager', 'OnSSEConnectionFailed', 'Max retries reached');
         }
-      } catch (error) {
-        console.error("Error connecting to wallet:", error);
-        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
+      };
+
+      eventSource.onopen = function (event) {
+        console.log('SSE connection opened successfully');
+        retryCount = 0; // Reset retry count on successful connection
+        sendMessageToUnity('SSEManager', 'OnSSEConnectionOpened');
+      };
+    }
+
+    // Initialize SSE handling
+    handleSSE();
+
+    // Function to manually reconnect SSE if needed
+    window.reconnectSSE = function() {
+      if (eventSource) {
+        eventSource.close();
       }
+      retryCount = 0;
+      handleSSE();
     };
 
-    // Listen for wallet changes
-    tonConnectUI.onStatusChange(wallet => {
-      if (wallet) {
-        console.log("Wallet connected:", wallet.account.address);
-        unityInstance.SendMessage('TonWalletManager', 'OnWalletStatusChanged', 'connected');
+    // Wait until everything is loaded before initializing Unity and TonConnect
+    window.addEventListener('load', () => {
+      console.log("SDK and DOM Loaded.");
+
+      if (typeof TON_CONNECT_UI !== 'undefined') {
+        console.log('TonConnect SDK loaded.');
+
+        // Initialize the TonConnect UI
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+          manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
+          buttonRootId: 'ton-connect',
+        });
+
+        // Setup the function that Unity will call to connect to Ton Wallet
+        window.ConnectToTonWallet = async function() {
+          try {
+            if (!tonConnectUI.wallet) {
+              await tonConnectUI.openModal();
+            }
+
+            const connectedWallet = tonConnectUI.wallet;
+            if (connectedWallet && connectedWallet.account) {
+              console.log("Connected Wallet Address:", connectedWallet.account.address);
+              sendMessageToUnity('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+            } else {
+              console.error("Error: No connected wallet account found.");
+              sendMessageToUnity('TonWalletManager', 'OnWalletConnectionFailed', 'No account found');
+            }
+          } catch (error) {
+            console.error("Error connecting to wallet:", error);
+            sendMessageToUnity('TonWalletManager', 'OnWalletConnectionFailed', error.message);
+          }
+        };
+
+        // Listen for wallet changes
+        tonConnectUI.onStatusChange(wallet => {
+          if (wallet) {
+            console.log("Wallet connected:", wallet.account.address);
+            sendMessageToUnity('TonWalletManager', 'OnWalletStatusChanged', 'connected');
+          } else {
+            console.log("Wallet disconnected");
+            sendMessageToUnity('TonWalletManager', 'OnWalletStatusChanged', 'disconnected');
+          }
+        });
+
+        // Handle the back button to prevent unexpected behavior
+        window.addEventListener('popstate', function (event) {
+          console.log("Back button pressed. Default behavior prevented.");
+          sendMessageToUnity('Controller', 'OnBackButtonPressed');
+        });
+
+        // Ensure back button does not interfere with game
+        history.pushState(null, null, document.URL);
+
+        // Fullscreen logic for expanding Telegram app
+        window.requestFullScreen = function() {
+          if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.expand();
+          } else {
+            console.log("Fullscreen not supported on this platform");
+          }
+        };
+
+        // Initialize Unity
+        var container = document.querySelector("#unity-container");
+        var canvas = document.querySelector("#unity-canvas");
+        var loadingBar = document.querySelector("#unity-loading-bar");
+        var progressBarFull = document.querySelector("#unity-progress-bar-full");
+        var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+        var warningBanner = document.querySelector("#unity-warning");
+
+        function unityShowBanner(msg, type) {
+          function updateBannerVisibility() {
+            warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+          }
+          var div = document.createElement('div');
+          div.innerHTML = msg;
+          warningBanner.appendChild(div);
+          if (type === 'error') div.style = 'background: red; padding: 10px;';
+          else {
+            if (type === 'warning') div.style = 'background: yellow; padding: 10px;';
+            setTimeout(function () {
+              warningBanner.removeChild(div);
+              updateBannerVisibility();
+            }, 5000);
+          }
+          updateBannerVisibility();
+        }
+
+        var buildUrl = "Build";
+        var loaderUrl = buildUrl + "/projectFolder.loader.js";
+        var config = {
+          dataUrl: buildUrl + "/projectFolder.data",
+          frameworkUrl: buildUrl + "/projectFolder.framework.js",
+          codeUrl: buildUrl + "/projectFolder.wasm",
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: "DefaultCompany",
+          productName: "Telegram_Game",
+          productVersion: "0.1",
+          showBanner: unityShowBanner,
+        };
+
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+          var meta = document.createElement('meta');
+          meta.name = 'viewport';
+          meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+          document.getElementsByTagName('head')[0].appendChild(meta);
+          container.className = "unity-mobile";
+          canvas.className = "unity-mobile";
+        } else {
+          canvas.style.width = "1080px";
+          canvas.style.height = "2160px";
+        }
+
+        loadingBar.style.display = "block";
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            progressBarFull.style.width = 100 * progress + "%";
+          }).then((instance) => {
+            onUnityLoaded(instance);
+            loadingBar.style.display = "none";
+            fullscreenButton.onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+
+            // Expose functions to Unity for interaction
+            window.CopyToClipboard = function(text) {
+              navigator.clipboard.writeText(text).then(function () {
+                console.log('Copied to clipboard: ' + text);
+              }).catch(function (err) {
+                console.error('Could not copy text: ', err);
+              });
+            };
+
+            window.OpenTelegramShare = function(url, message) {
+              var encodedUrl = encodeURIComponent(url);
+              var encodedMessage = encodeURIComponent(message);
+              var shareUrl = "https://t.me/share/url?url=" + encodedUrl + "&text=" + encodedMessage;
+              window.open(shareUrl, '_blank');
+            };
+          }).catch((message) => {
+            alert(message);
+          });
+        };
+
+        document.body.appendChild(script);
       } else {
-        console.log("Wallet disconnected");
-        unityInstance.SendMessage('TonWalletManager', 'OnWalletStatusChanged', 'disconnected');
+        console.error('TonConnect SDK is not available.');
       }
     });
-
-          // Handle the back button to prevent unexpected behavior
-          window.addEventListener('popstate', function (event) {
-            console.log("Back button pressed. Default behavior prevented.");
-            unityInstance.SendMessage('Controller', 'OnBackButtonPressed');
-          });
-
-          // Ensure back button does not interfere with game
-          history.pushState(null, null, document.URL);
-
-          // Fullscreen logic for expanding Telegram app
-          window.requestFullScreen = function() {
-            if (window.Telegram && window.Telegram.WebApp) {
-              window.Telegram.WebApp.expand();
-            } else {
-              console.log("Fullscreen not supported on this platform");
-            }
-          };
-
-          // Initialize Unity AFTER TonConnect is fully loaded
-          var container = document.querySelector("#unity-container");
-          var canvas = document.querySelector("#unity-canvas");
-          var loadingBar = document.querySelector("#unity-loading-bar");
-          var progressBarFull = document.querySelector("#unity-progress-bar-full");
-          var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-          var warningBanner = document.querySelector("#unity-warning");
-
-          function unityShowBanner(msg, type) {
-            function updateBannerVisibility() {
-              warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-            }
-            var div = document.createElement('div');
-            div.innerHTML = msg;
-            warningBanner.appendChild(div);
-            if (type === 'error') div.style = 'background: red; padding: 10px;';
-            else {
-              if (type === 'warning') div.style = 'background: yellow; padding: 10px;';
-              setTimeout(function () {
-                warningBanner.removeChild(div);
-                updateBannerVisibility();
-              }, 5000);
-            }
-            updateBannerVisibility();
-          }
-
-          var buildUrl = "Build";
-          var loaderUrl = buildUrl + "/projectFolder.loader.js";
-          var config = {
-            dataUrl: buildUrl + "/projectFolder.data",
-            frameworkUrl: buildUrl + "/projectFolder.framework.js",
-            codeUrl: buildUrl + "/projectFolder.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "Telegram_Game",
-            productVersion: "0.1",
-            showBanner: unityShowBanner,
-          };
-
-          if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            var meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-            document.getElementsByTagName('head')[0].appendChild(meta);
-            container.className = "unity-mobile";
-            canvas.className = "unity-mobile";
-          } else {
-            canvas.style.width = "1080px";
-            canvas.style.height = "2160px";
-          }
-
-          loadingBar.style.display = "block";
-
-          var script = document.createElement("script");
-          script.src = loaderUrl;
-          script.onload = () => {
-            createUnityInstance(canvas, config, (progress) => {
-              progressBarFull.style.width = 100 * progress + "%";
-            }).then((instance) => {
-              unityInstance = instance; // Update global unityInstance here
-              console.log("Unity Instance is ready:", unityInstance);
-              loadingBar.style.display = "none";
-              fullscreenButton.onclick = () => {
-                unityInstance.SetFullscreen(1);
-              };
-
-              // Now that Unity is ready, expose functions to Unity for interaction
-              window.CopyToClipboard = function(text) {
-                navigator.clipboard.writeText(text).then(function () {
-                  console.log('Copied to clipboard: ' + text);
-                }).catch(function (err) {
-                  console.error('Could not copy text: ', err);
-                });
-              };
-
-              window.OpenTelegramShare = function(url, message) {
-                var encodedUrl = encodeURIComponent(url);
-                var encodedMessage = encodeURIComponent(message);
-                var shareUrl = "https://t.me/share/url?url=" + encodedUrl + "&text=" + encodedMessage;
-                window.open(shareUrl, '_blank');
-              };
-            }).catch((message) => {
-              alert(message);
-            });
-          };
-
-          document.body.appendChild(script);
-        } else {
-          console.error('TonConnect SDK is not available.');
-        }
-      });
     </script>
   </body>
 </html>
