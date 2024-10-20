@@ -33,7 +33,15 @@
     </div>
 
     <script>
-      // Wait until everything is loaded before initializing Unity
+      var unityInstance = null;
+
+      // SSE event error handling - Log the error gracefully
+      function handleSSEError(event) {
+        console.error('SSE Event Error:', event);
+        // Optional retry logic or error handling can be added here
+      }
+
+      // Wait until everything is loaded before initializing Unity and TonConnect
       window.addEventListener('load', () => {
         console.log("SDK and DOM Loaded.");
 
@@ -51,19 +59,16 @@
             if (!tonConnectUI.wallet) {
               // Open the modal to select/connect a wallet
               tonConnectUI.openModal().then(() => {
-                // Get the wallet information after the modal is closed
-                const connectedWallet = tonConnectUI.wallet;
+                const connectedWallet = tonConnectUI.wallet;  // Access the connected wallet directly
 
                 if (connectedWallet && connectedWallet.account) {
                   console.log("Connected Wallet Address:", connectedWallet.account.address);
                   unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
                 } else {
                   console.log("Error: No connected wallet account found.");
-                  unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No wallet connected');
                 }
               }).catch((error) => {
                 console.error("Error opening modal:", error);
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
               });
             } else {
               // If already connected, use the wallet information
@@ -73,33 +78,25 @@
                 unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
               } else {
                 console.error("No account information available in the connected wallet.");
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No wallet account found');
               }
             }
           };
 
+          // Handle the back button to prevent unexpected behavior
           window.addEventListener('popstate', function (event) {
-            // This will trigger when the user presses the back button
             console.log("Back button pressed. Default behavior prevented.");
             unityInstance.SendMessage('Controller', 'OnBackButtonPressed');
           });
 
+          // Ensure back button does not interfere with game
           history.pushState(null, null, document.URL);
 
-          // Setup the function to disconnect from Ton Wallet
-          window.DisconnectTonWallet = function() {
-            try {
-              tonConnectUI.disconnect()
-                .then(() => {
-                  console.log("Disconnected from wallet");
-                  unityInstance.SendMessage('TonWalletManager', 'OnWalletDisconnected');
-                })
-                .catch(error => {
-                  console.error("Error disconnecting from wallet:", error);
-                  unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
-                });
-            } catch (error) {
-              console.error("Error in disconnectTonWallet:", error);
+          // Fullscreen logic for expanding Telegram app
+          window.requestFullScreen = function() {
+            if (window.Telegram && window.Telegram.WebApp) {
+              window.Telegram.WebApp.expand();
+            } else {
+              console.log("Fullscreen not supported on this platform");
             }
           };
 
@@ -110,7 +107,6 @@
           var progressBarFull = document.querySelector("#unity-progress-bar-full");
           var fullscreenButton = document.querySelector("#unity-fullscreen-button");
           var warningBanner = document.querySelector("#unity-warning");
-          var unityInstance = null;
 
           function unityShowBanner(msg, type) {
             function updateBannerVisibility() {
@@ -164,6 +160,7 @@
               progressBarFull.style.width = 100 * progress + "%";
             }).then((instance) => {
               unityInstance = instance; // Update global unityInstance here
+              console.log("Unity Instance is ready:", unityInstance);
               loadingBar.style.display = "none";
               fullscreenButton.onclick = () => {
                 unityInstance.SetFullscreen(1);
