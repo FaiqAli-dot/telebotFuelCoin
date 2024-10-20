@@ -31,32 +31,7 @@
         <div id="unity-build-title">Telegram_Game</div>
       </div>
     </div>
-    <script>
-      var unityInstance = null;
-  
-      // function initializeUnity() {
-      //     unityInstance = UnityLoader.instantiate("unityContainer", "Build/projectFolder.json", {
-      //         onProgress: UnityProgress,
-      //         Module: {
-      //             onRuntimeInitialized: function() {
-      //                 console.log("Unity WebGL is ready!");
-      //                 // Now it's safe to use unityInstance here
-      //                 if (unityInstance) {
-      //                     // Safe to call methods on unityInstance now
-      //                     console.log("Unity Instance is ready:", unityInstance);
-      //                 }else{
-      //                   console.log("Unity Instance not loaded not loaded not loaded not loaded:");
 
-      //                 }
-      //             }
-      //         }
-      //     });
-      // }
-  
-      // window.onload = function() {
-      //     initializeUnity();
-      // };
-  </script>
     <script>
       // Wait until everything is loaded before initializing Unity
       window.addEventListener('load', () => {
@@ -73,42 +48,44 @@
 
           // Setup the function that Unity will call to connect to Ton Wallet
           window.ConnectToTonWallet = function() {
-  if (!tonConnectUI.wallet) {
-    // Open the modal to select/connect a wallet
-    tonConnectUI.openModal().then(() => {
-      // Get the wallet information after the modal is closed
-      const connectedWallet = tonConnectUI.wallet;  // Access the connected wallet directly
-      
-      if (connectedWallet && connectedWallet.account) {
-        // Ensure that the account and address exist
-        console.log("Connected Wallet Address:", connectedWallet.account.address);
-        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-      } else {
-        console.log("Error: No connected wallet account found.");
-      }
-    }).catch((error) => {
-      console.error("Error opening modal:", error);
-    });
-  } else {
-    // If already connected, use the wallet information
-    const connectedWallet = tonConnectUI.wallet;
-    if (connectedWallet && connectedWallet.account) {
-      console.log("Wallet already connected:", connectedWallet.account.address);
-      unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-    } else {
-      console.error("No account information available in the connected wallet.");
-    }
-  }
-};
+            if (!tonConnectUI.wallet) {
+              // Open the modal to select/connect a wallet
+              tonConnectUI.openModal().then(() => {
+                // Get the wallet information after the modal is closed
+                const connectedWallet = tonConnectUI.wallet;
 
-window.addEventListener('popstate', function (event) {
-    // This will trigger when the user presses the back button
-    console.log("Back button pressed. Default behavior prevented.");
-    // You can send a message to Unity here to block or override the behavior
-    unityInstance.SendMessage('Controller', 'OnBackButtonPressed');
-});
+                if (connectedWallet && connectedWallet.account) {
+                  console.log("Connected Wallet Address:", connectedWallet.account.address);
+                  unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+                } else {
+                  console.log("Error: No connected wallet account found.");
+                  unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No wallet connected');
+                }
+              }).catch((error) => {
+                console.error("Error opening modal:", error);
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
+              });
+            } else {
+              // If already connected, use the wallet information
+              const connectedWallet = tonConnectUI.wallet;
+              if (connectedWallet && connectedWallet.account) {
+                console.log("Wallet already connected:", connectedWallet.account.address);
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+              } else {
+                console.error("No account information available in the connected wallet.");
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No wallet account found');
+              }
+            }
+          };
 
-history.pushState(null, null, document.URL);
+          window.addEventListener('popstate', function (event) {
+            // This will trigger when the user presses the back button
+            console.log("Back button pressed. Default behavior prevented.");
+            unityInstance.SendMessage('Controller', 'OnBackButtonPressed');
+          });
+
+          history.pushState(null, null, document.URL);
+
           // Setup the function to disconnect from Ton Wallet
           window.DisconnectTonWallet = function() {
             try {
@@ -180,18 +157,13 @@ history.pushState(null, null, document.URL);
 
           loadingBar.style.display = "block";
 
-
-
-
-
           var script = document.createElement("script");
           script.src = loaderUrl;
           script.onload = () => {
-          createUnityInstance(canvas, config, (progress) => {
+            createUnityInstance(canvas, config, (progress) => {
               progressBarFull.style.width = 100 * progress + "%";
-          }).then((instance) => {
+            }).then((instance) => {
               unityInstance = instance; // Update global unityInstance here
-              console.log("ASDASDASDASD: ", unityInstance);
               loadingBar.style.display = "none";
               fullscreenButton.onclick = () => {
                 unityInstance.SetFullscreen(1);
@@ -212,7 +184,6 @@ history.pushState(null, null, document.URL);
                 var shareUrl = "https://t.me/share/url?url=" + encodedUrl + "&text=" + encodedMessage;
                 window.open(shareUrl, '_blank');
               };
-              
             }).catch((message) => {
               alert(message);
             });
