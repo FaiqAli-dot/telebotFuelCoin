@@ -33,25 +33,47 @@
       </div>
     </div>
     <script>
-      function handleSSE() {
-        const eventSource = new EventSource('https://fuelup.duckdns.org/events'); 
+function handleSSE() {
+  const eventSource = new EventSource('https://fuelup.duckdns.org/events');
+
+  eventSource.onmessage = function (event) {
+    console.log('Message from servers: ', event.data);
+    // Handle the message here, possibly sending it to Unity
+    if (unityInstance) {
+      unityInstance.SendMessage('YourUnityObject', 'YourUnityMethod', event.data);
+    }
+  };
+
+  eventSource.onerror = function (event) {
+    console.error('SSE error occurred:', event);
+    eventSource.close(); // Close the connection on error
     
-        eventSource.onmessage = function (event) {
-          console.log('Message from servers: ', event.data);
-        };
-    
-        eventSource.onerror = function (event) {
-          console.error('SSE error occurred:', event);
-          // Add a retry mechanism
-          setTimeout(function() {
-            console.log('Reconnecting SSE...');
-            handleSSE(); // Retry connection
-          }, 5000); // Retry after 5 seconds
-        };
-      }
-    
-      // Call the function to initialize SSE handling
-      handleSSE();
+    // Add a retry mechanism with exponential backoff
+    let retryDelay = 1000;
+    const maxRetryDelay = 30000; // Maximum delay of 30 seconds
+
+    function retryConnection() {
+      console.log(`Attempting to reconnect SSE in ${retryDelay / 5000} seconds...`);
+      setTimeout(() => {
+        handleSSE(); // Retry connection
+      }, retryDelay);
+
+      // Increase the delay for the next attempt, but don't exceed maxRetryDelay
+      retryDelay = Math.min(retryDelay * 2, maxRetryDelay);
+    }
+
+    retryConnection();
+  };
+
+  // Add an onopen handler to reset the retry delay when a connection is successful
+  eventSource.onopen = function (event) {
+    console.log('SSE connection opened successfully');
+    // Reset retry delay here if you keep it as a global variable
+  };
+}
+
+// Call the function to initialize SSE handling
+handleSSE();
     </script>
     <script>
       var unityInstance = null;
@@ -75,33 +97,63 @@
             buttonRootId: 'ton-connect',
           });
 
-          // Setup the function that Unity will call to connect to Ton Wallet
-          window.ConnectToTonWallet = function() {
-            if (!tonConnectUI.wallet) {
-              // Open the modal to select/connect a wallet
-              tonConnectUI.openModal().then(() => {
-                const connectedWallet = tonConnectUI.wallet;  // Access the connected wallet directly
+          // // Setup the function that Unity will call to connect to Ton Wallet
+          // window.ConnectToTonWallet = function() {
+          //   if (!tonConnectUI.wallet) {
+          //     // Open the modal to select/connect a wallet
+          //     tonConnectUI.openModal().then(() => {
+          //       const connectedWallet = tonConnectUI.wallet;  // Access the connected wallet directly
 
-                if (connectedWallet && connectedWallet.account) {
-                  console.log("Connected Wallet Address:", connectedWallet.account.address);
-                  unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-                } else {
-                  console.log("Error: No connected wallet account found.");
-                }
-              }).catch((error) => {
-                console.error("Error opening modal:", error);
-              });
-            } else {
-              // If already connected, use the wallet information
-              const connectedWallet = tonConnectUI.wallet;
-              if (connectedWallet && connectedWallet.account) {
-                console.log("Wallet already connected:", connectedWallet.account.address);
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-              } else {
-                console.error("No account information available in the connected wallet.");
-              }
-            }
-          };
+          //       if (connectedWallet && connectedWallet.account) {
+          //         console.log("Connected Wallet Address:", connectedWallet.account.address);
+          //         unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+          //       } else {
+          //         console.log("Error: No connected wallet account found.");
+          //       }
+          //     }).catch((error) => {
+          //       console.error("Error opening modal:", error);
+          //     });
+          //   } else {
+          //     // If already connected, use the wallet information
+          //     const connectedWallet = tonConnectUI.wallet;
+          //     if (connectedWallet && connectedWallet.account) {
+          //       console.log("Wallet already connected:", connectedWallet.account.address);
+          //       unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+          //     } else {
+          //       console.error("No account information available in the connected wallet.");
+          //     }
+          //   }
+          // };
+          window.ConnectToTonWallet = async function() {
+      try {
+        if (!tonConnectUI.wallet) {
+          await tonConnectUI.openModal();
+        }
+
+        const connectedWallet = tonConnectUI.wallet;
+        if (connectedWallet && connectedWallet.account) {
+          console.log("Connected Wallet Address:", connectedWallet.account.address);
+          unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+        } else {
+          console.error("Error: No connected wallet account found.");
+          unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No account found');
+        }
+      } catch (error) {
+        console.error("Error connecting to wallet:", error);
+        unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
+      }
+    };
+
+    // Listen for wallet changes
+    tonConnectUI.onStatusChange(wallet => {
+      if (wallet) {
+        console.log("Wallet connected:", wallet.account.address);
+        unityInstance.SendMessage('TonWalletManager', 'OnWalletStatusChanged', 'connected');
+      } else {
+        console.log("Wallet disconnected");
+        unityInstance.SendMessage('TonWalletManager', 'OnWalletStatusChanged', 'disconnected');
+      }
+    });
 
           // Handle the back button to prevent unexpected behavior
           window.addEventListener('popstate', function (event) {
