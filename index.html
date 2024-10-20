@@ -14,7 +14,7 @@
   </head>
 
   <body>
-    <div id="ton-connect" style="display: none;"></div>
+    <div id="ton-connect" style="display: block;"></div>
 
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=1080 height=2160 tabindex="-1"></canvas>
@@ -118,35 +118,38 @@
 
         // Setup the function that Unity will call to connect to Ton Wallet
         window.ConnectToTonWallet = async function() {
-          try {
-            if (!tonConnectUI.wallet) {
-              await tonConnectUI.openModal();
+            try {
+              console.log('Attempting to open Ton Wallet modal...');
+              if (!tonConnectUI.wallet) {
+                await tonConnectUI.openModal();  // Opens the wallet selection modal
+              }
+              
+              console.log('Ton Wallet modal opened successfully.');
+              const connectedWallet = tonConnectUI.wallet;
+              if (connectedWallet && connectedWallet.account) {
+                console.log("Connected Wallet Address:", connectedWallet.account.address);
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+              } else {
+                console.error("Error: No connected wallet account found.");
+                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No account found');
+              }
+            } catch (error) {
+              console.error("Error while connecting to wallet:", error);
+              unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
             }
-
-            const connectedWallet = tonConnectUI.wallet;
-            if (connectedWallet && connectedWallet.account) {
-              console.log("Connected Wallet Address:", connectedWallet.account.address);
-              sendMessageToUnity('TonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-            } else {
-              console.error("Error: No connected wallet account found.");
-              sendMessageToUnity('TonWalletManager', 'OnWalletConnectionFailed', 'No account found');
-            }
-          } catch (error) {
-            console.error("Error connecting to wallet:", error);
-            sendMessageToUnity('TonWalletManager', 'OnWalletConnectionFailed', error.message);
-          }
-        };
+          };
 
         // Listen for wallet changes
-        tonConnectUI.onStatusChange(wallet => {
-          if (wallet) {
-            console.log("Wallet connected:", wallet.account.address);
-            sendMessageToUnity('TonWalletManager', 'OnWalletStatusChanged', 'connected');
-          } else {
-            console.log("Wallet disconnected");
-            sendMessageToUnity('TonWalletManager', 'OnWalletStatusChanged', 'disconnected');
-          }
-        });
+// Listen for wallet changes (connection, disconnection)
+          tonConnectUI.onStatusChange(wallet => {
+            if (wallet) {
+              console.log("Wallet connected:", wallet.account.address);
+              unityInstance.SendMessage('TonWalletManager', 'OnWalletStatusChanged', 'connected');
+            } else {
+              console.log("Wallet disconnected");
+              unityInstance.SendMessage('TonWalletManager', 'OnWalletStatusChanged', 'disconnected');
+            }
+          });
 
         // Handle the back button to prevent unexpected behavior
         window.addEventListener('popstate', function (event) {
