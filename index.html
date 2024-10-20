@@ -33,7 +33,7 @@
     </div>
     <script>
       function handleSSE() {
-        const eventSource = new EventSource('https://fuelup.duckdns.org//events');
+        const eventSource = new EventSource('https://fuelup.duckdns.org/events');
     
         eventSource.onmessage = function (event) {
           console.log('Message from server: ', event.data);
