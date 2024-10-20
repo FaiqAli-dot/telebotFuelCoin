@@ -31,7 +31,27 @@
         <div id="unity-build-title">Telegram_Game</div>
       </div>
     </div>
-
+    <script>
+      function handleSSE() {
+        const eventSource = new EventSource('https://fuelup.duckdns.org//events');
+    
+        eventSource.onmessage = function (event) {
+          console.log('Message from server: ', event.data);
+        };
+    
+        eventSource.onerror = function (event) {
+          console.error('SSE error occurred:', event);
+          // Add a retry mechanism
+          setTimeout(function() {
+            console.log('Reconnecting SSE...');
+            handleSSE(); // Retry connection
+          }, 5000); // Retry after 5 seconds
+        };
+      }
+    
+      // Call the function to initialize SSE handling
+      handleSSE();
+    </script>
     <script>
       var unityInstance = null;
 
