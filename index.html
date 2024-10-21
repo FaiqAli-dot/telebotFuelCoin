@@ -134,11 +134,11 @@
                 // unityInstance.SendMessage('tonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
               } else {
                 console.error("Error: No connected wallet account found.");
-                unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No account found');
+                unityInstance.SendMessage('WalletManager', 'OnWalletConnectionFailed', 'No account found');
               }
             } catch (error) {
               console.error("Error while connecting to wallet:", error);
-              unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', error.message);
+              unityInstance.SendMessage('WalletManager', 'OnWalletConnectionFailed', error.message);
             }
           };
 
