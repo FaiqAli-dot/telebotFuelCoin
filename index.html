@@ -144,6 +144,38 @@
             }
           };
 
+          window.DisconnectTonWallet = async function() {
+              try {
+                if (tonConnectUI.wallet) {
+                  console.log("Disconnecting from wallet...");
+                  await tonConnectUI.disconnect(); // This will disconnect the connected wallet
+                  console.log("Wallet disconnected.");
+                  unityInstance.SendMessage('tonWalletMan', 'OnWalletDisconnected', 'Wallet disconnected');
+                } else {
+                  console.warn("No wallet connected to disconnect.");
+                }
+              } catch (error) {
+                console.error("Error during wallet disconnection:", error);
+                unityInstance.SendMessage('tonWalletMan', 'OnWalletDisconnectionFailed', error.message);
+              }
+            };
+
+            window.CheckIfWalletConnected = async function() {
+              try {
+                const connectedWallet = tonConnectUI.wallet;
+                if (connectedWallet && connectedWallet.account) {
+                  console.log("Wallet is already connected:", connectedWallet.account.address);
+                  unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', connectedWallet.account.address);
+                } else {
+                  console.log("No wallet is connected.");
+                  unityInstance.SendMessage('tonWalletMan', 'OnWalletNotConnected');
+                }
+              } catch (error) {
+                console.error("Error while checking wallet connection:", error);
+                unityInstance.SendMessage('tonWalletMan', 'OnWalletConnectionCheckFailed', error.message);
+              }
+            };
+
         // Listen for wallet changes
 // Listen for wallet changes (connection, disconnection)
           tonConnectUI.onStatusChange(wallet => {
