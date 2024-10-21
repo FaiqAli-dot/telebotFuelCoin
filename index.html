@@ -149,10 +149,10 @@
           tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
               console.log("Wallet connected:", wallet.account.address);
-              unityInstance.SendMessage('TonWalletManager', 'OnWalletStatusChanged', 'connected');
+              unityInstance.SendMessage('tonWalletMan', 'OnWalletStatusChanged', 'connected');
             } else {
               console.log("Wallet disconnected");
-              unityInstance.SendMessage('TonWalletManager', 'OnWalletStatusChanged', 'disconnected');
+              unityInstance.SendMessage('tonWalletMan', 'OnWalletStatusChanged', 'disconnected');
             }
           });
 
