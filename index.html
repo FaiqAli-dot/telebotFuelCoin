@@ -129,7 +129,9 @@
               if (connectedWallet && connectedWallet.account) {
                 console.log("Connected Wallet Address:", connectedWallet.account.address);
                 console.log("unityInstance: ", unityInstance);
-                unityInstance.SendMessage('WalletManager', 'OnWalletConnected', connectedWallet.account.address);
+                setTimeout(() => {
+                  unityInstance.SendMessage('WalletManager', 'OnWalletConnected', connectedWallet.account.address);
+                }, 1000); 
 
                 // unityInstance.SendMessage('tonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
               } else {
