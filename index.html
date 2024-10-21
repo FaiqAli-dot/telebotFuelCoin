@@ -128,7 +128,10 @@
               const connectedWallet = tonConnectUI.wallet;
               if (connectedWallet && connectedWallet.account) {
                 console.log("Connected Wallet Address:", connectedWallet.account.address);
-                unityInstance.SendMessage('tonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
+                console.log("unityInstance: ", unityInstance);
+                unityInstance.SendMessage('WalletManager', 'OnWalletConnected', connectedWallet.account.address);
+
+                // unityInstance.SendMessage('tonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
               } else {
                 console.error("Error: No connected wallet account found.");
                 unityInstance.SendMessage('TonWalletManager', 'OnWalletConnectionFailed', 'No account found');
