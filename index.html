@@ -125,7 +125,7 @@
                 await tonConnectUI.openModal();  // Opens the wallet selection modal
               }
               
-              console.log('Ton Wallet modal opened successfully.');
+              console.log('Ton Wallet modal opened successfully....');
               const connectedWallet = tonConnectUI.wallet;
               if (connectedWallet && connectedWallet.account) {
                 let userFriendlyAddress = Address.parse(connectedWallet.account.address).toString();
