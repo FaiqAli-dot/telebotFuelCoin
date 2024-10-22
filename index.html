@@ -116,16 +116,16 @@
           buttonRootId: 'ton-connect',
         });
         function hexToBase64Url(hexString) {
-          // Remove the "0:" prefix if present
+  // Remove the "0:" prefix if present
           if (hexString.startsWith('0:')) {
             hexString = hexString.slice(2);
           }
 
-          // Convert hex string to binary data
-          const binary = Buffer.from(hexString, 'hex');
+          // Convert hex string to Uint8Array (binary data)
+          const binaryArray = new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 
           // Convert binary data to Base64
-          let base64 = binary.toString('base64');
+          let base64 = btoa(String.fromCharCode.apply(null, binaryArray));
 
           // Convert to Base64 URL format by replacing characters
           base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
