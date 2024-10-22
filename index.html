@@ -115,27 +115,11 @@
           manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
           buttonRootId: 'ton-connect',
         });
-        function hexToBase64Url(hexString) {
-  // Remove the "0:" prefix if present
-          if (hexString.startsWith('0:')) {
-            hexString = hexString.slice(2);
-          }
 
-          // Convert hex string to Uint8Array (binary data)
-          const binaryArray = new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-
-          // Convert binary data to Base64
-          let base64 = btoa(String.fromCharCode.apply(null, binaryArray));
-
-          // Convert to Base64 URL format by replacing characters
-          base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-
-          return base64;
-        }
         // Setup the function that Unity will call to connect to Ton Wallet
         window.ConnectToTonWallet = async function() {
             try {
-              console.log('Attempting to open Ton Wallet modalss...');
+              console.log('Attempting to open Ton Wallet modal...');
               if (!tonConnectUI.wallet) {
                 await tonConnectUI.openModal();  // Opens the wallet selection modal
               }
@@ -143,13 +127,13 @@
               console.log('Ton Wallet modal opened successfully.');
               const connectedWallet = tonConnectUI.wallet;
               if (connectedWallet && connectedWallet.account) {
-                      // Convert the connected wallet address to Base64 URL format
-      const base64UrlAddress = hexToBase64Url(connectedWallet.account.address);
-                console.log("Connected Wallet Address:", base64UrlAddress);
+                let userFriendlyAddress = Address.parse(connectedWallet.account.address).toString();
+
+                console.log("Connected Wallet Address:", userFriendlyAddress);
                 console.log("unityInstance: ", unityInstance);
-                setTimeout(() => {
-                  unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', connectedWallet.account.address);
-                }, 1000); 
+                // setTimeout(() => {
+                  unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', userFriendlyAddress);
+                // }, 1000); 
 
                 // unityInstance.SendMessage('tonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
               } else {
@@ -182,10 +166,9 @@
               try {
                 const connectedWallet = tonConnectUI.wallet;
                 if (connectedWallet && connectedWallet.account) {
-                  const base64UrlAddress = hexToBase64Url(connectedWallet.account.address);
-                  console.log("Wallet is already connected:", base64UrlAddress);
-                  
-                  unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', base64UrlAddress);
+                  let userFriendlyAddress = Address.parse(connectedWallet.account.address).toString();
+                  console.log("Wallet is already connected:", userFriendlyAddress);
+                  unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', userFriendlyAddress);
                 } else {
                   console.log("No wallet is connected.");
                   unityInstance.SendMessage('tonWalletMan', 'OnWalletNotConnected');
@@ -200,9 +183,9 @@
 // Listen for wallet changes (connection, disconnection)
           tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
-              const base64UrlAddress = hexToBase64Url(wallet.account.address);
-              console.log("Wallet is already connected:", base64UrlAddress);
-              console.log("Wallet connected:", base64UrlAddress);
+              let userFriendlyAddress = Address.parse(wallet.account.address).toString();
+
+              console.log("Wallet connected:", userFriendlyAddress);
               unityInstance.SendMessage('tonWalletMan', 'OnWalletStatusChanged', 'connected');
             } else {
               console.log("Wallet disconnected");
