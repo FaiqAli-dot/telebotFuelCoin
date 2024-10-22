@@ -115,7 +115,23 @@
           manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
           buttonRootId: 'ton-connect',
         });
+        function hexToBase64Url(hexString) {
+          // Remove the "0:" prefix if present
+          if (hexString.startsWith('0:')) {
+            hexString = hexString.slice(2);
+          }
 
+          // Convert hex string to binary data
+          const binary = Buffer.from(hexString, 'hex');
+
+          // Convert binary data to Base64
+          let base64 = binary.toString('base64');
+
+          // Convert to Base64 URL format by replacing characters
+          base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+          return base64;
+        }
         // Setup the function that Unity will call to connect to Ton Wallet
         window.ConnectToTonWallet = async function() {
             try {
@@ -127,7 +143,9 @@
               console.log('Ton Wallet modal opened successfully.');
               const connectedWallet = tonConnectUI.wallet;
               if (connectedWallet && connectedWallet.account) {
-                console.log("Connected Wallet Address:", connectedWallet.account.address);
+                      // Convert the connected wallet address to Base64 URL format
+      const base64UrlAddress = hexToBase64Url(connectedWallet.account.address);
+                console.log("Connected Wallet Address:", base64UrlAddress);
                 console.log("unityInstance: ", unityInstance);
                 setTimeout(() => {
                   unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', connectedWallet.account.address);
@@ -164,8 +182,10 @@
               try {
                 const connectedWallet = tonConnectUI.wallet;
                 if (connectedWallet && connectedWallet.account) {
-                  console.log("Wallet is already connected:", connectedWallet.account.address);
-                  unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', connectedWallet.account.address);
+                  const base64UrlAddress = hexToBase64Url(connectedWallet.account.address);
+                  console.log("Wallet is already connected:", base64UrlAddress);
+                  
+                  unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', base64UrlAddress);
                 } else {
                   console.log("No wallet is connected.");
                   unityInstance.SendMessage('tonWalletMan', 'OnWalletNotConnected');
@@ -180,7 +200,9 @@
 // Listen for wallet changes (connection, disconnection)
           tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
-              console.log("Wallet connected:", wallet.account.address);
+              const base64UrlAddress = hexToBase64Url(wallet.account.address);
+              console.log("Wallet is already connected:", base64UrlAddress);
+              console.log("Wallet connected:", base64UrlAddress);
               unityInstance.SendMessage('tonWalletMan', 'OnWalletStatusChanged', 'connected');
             } else {
               console.log("Wallet disconnected");
