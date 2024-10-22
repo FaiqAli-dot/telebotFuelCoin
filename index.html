@@ -129,7 +129,7 @@
               console.log('Ton Wallet modal opened successfully....');
               const connectedWallet = tonConnectUI.wallet;
               if (connectedWallet && connectedWallet.account) {
-                const userFriendlyAddress = Address.parse(connectedWallet.account.address).toString();
+                const userFriendlyAddress = Address.parseFriendly(connectedWallet.account.address).toString();
           console.log("Connected Wallet Address:", userFriendlyAddress);
                 console.log("unityInstance: ", unityInstance);
                 // setTimeout(() => {
@@ -167,7 +167,7 @@
               try {
                 const connectedWallet = tonConnectUI.wallet;
                 if (connectedWallet && connectedWallet.account) {
-                  const userFriendlyAddress = Address.parse(connectedWallet.account.address).toString();
+                  const userFriendlyAddress = Address.parseFriendly(connectedWallet.account.address).toString();
           console.log("Connected Wallet Address:", userFriendlyAddress);
                   unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', userFriendlyAddress);
                 } else {
@@ -184,7 +184,7 @@
 // Listen for wallet changes (connection, disconnection)
           tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
-              const userFriendlyAddress = Address.parse(wallet.account.address).toString();
+              const userFriendlyAddress = Address.parseFriendly(wallet.account.address).toString();
           console.log("Connected Wallet Address:", userFriendlyAddress);
               unityInstance.SendMessage('tonWalletMan', 'OnWalletStatusChanged', 'connected');
             } else {
