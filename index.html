@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.4">
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.5">
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -166,16 +166,16 @@
         const connectedWallet = tonConnectUI.wallet;
         if (connectedWallet && connectedWallet.account) {
             console.log("Wallet is already connected:", connectedWallet.account.address);
-            // The network type is available in the account.chain property
-            const network = connectedWallet.account.chain; // This will be '-3' for testnet or '-239' for mainnet
-            const networkName = network === '-3' ? 'testnet' : (network === '-239' ? 'mainnet' : 'unknown');
-            console.log("Connected to network:", networkName);
-            // Send both address and network information to Unity
-            const walletInfo = {
-                address: connectedWallet.account.address,
-                network: networkName
-            };
-            unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', JSON.stringify(walletInfo));
+            // Check network based on chain ID
+            const network = connectedWallet.account.chain;
+            if (network === '-3') {
+                console.log("Connected to testnet");
+            } else if (network === '-239') {
+                console.log("Connected to mainnet");
+            } else {
+                console.log("Connected to unknown network:", network);
+            }
+            unityInstance.SendMessage('tonWalletMan', 'OnWalletConnected', connectedWallet.account.address);
         } else {
             console.log("No wallet is connected.");
             unityInstance.SendMessage('tonWalletMan', 'OnWalletNotConnected');
@@ -184,6 +184,7 @@
         console.error("Error while checking wallet connection:", error);
         unityInstance.SendMessage('tonWalletMan', 'OnWalletConnectionCheckFailed', error.message);
     }
+
 };
 
         // Listen for wallet changes
