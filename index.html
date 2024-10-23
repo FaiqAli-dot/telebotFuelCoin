@@ -111,11 +111,20 @@
         console.log('TonConnect SDK loaded.');
 
         // Initialize the TonConnect UI
+        // const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        //   manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
+        //   buttonRootId: 'ton-connect',
+        //   networkType: 'testnet',
+        // });
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-          manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
-          buttonRootId: 'ton-connect',
-          networkType: 'testnet',
-        });
+    manifestUrl: 'https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json',
+    buttonRootId: 'ton-connect',
+    manifestNetworkType: 'testnet', // Add this line
+    networkType: 'testnet', // Ensure this is set to testnet
+    uiPreferences: {
+        theme: 'SYSTEM'
+    }
+});
 
         // Setup the function that Unity will call to connect to Ton Wallet
         window.ConnectToTonWallet = async function() {
