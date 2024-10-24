@@ -285,27 +285,16 @@
               const connectedWallet = tonConnectUI.wallet;
               if (connectedWallet && connectedWallet.account) {
                 const smartContractAddress =
-                  "EQCx9s1ndR8CJB7jG_H3qWhiK9Un5klAsTQyzlQSvmcUTr5A"; // Your smart contract address
+                  "EQDPOz6KdtZI8sUEfIOBktNZQvTUOhiTp63gNGq1cKYab3i2"; // Your contract address
 
-                // Encoding operation code (for example: OP_SPLIT_TON = 0x123)
-                const operationCode = "00000123"; // Hex value for OP_SPLIT_TON
-                const payload = btoa(
-                  String.fromCharCode.apply(
-                    null,
-                    operationCode
-                      .match(/.{1,2}/g)
-                      .map((byte) => parseInt(byte, 16))
-                  )
-                );
-
-                // Transaction parameters
+                // Transaction parameters with an empty payload
                 const transactionParams = {
                   validUntil: Math.floor(Date.now() / 1000) + 3600, // Transaction valid for 1 hour
                   messages: [
                     {
                       address: smartContractAddress,
-                      amount: (0.25 * 10 ** 9).toString(), // Send 0.25 TON
-                      payload: "", // Base64 payload for the operation
+                      amount: (0.5 * 10 ** 9).toString(), // Send 0.25 TON (convert to nanoTONs)
+                      payload: "", // Empty payload for simple transfer
                     },
                   ],
                 };
@@ -317,15 +306,16 @@
 
                 console.log("Transaction sent, result:", transactionResult);
 
+                // Forward result to Unity
                 unityInstance.SendMessage(
                   "tonWalletMan",
                   "OnTransactionResult",
                   JSON.stringify(transactionResult)
                 );
 
-                // Check the transaction status if a transaction ID is available
+                // Check the transaction status
                 if (transactionResult?.id) {
-                  checkTransactionStatus(transactionResult.id); // Check for confirmation
+                  checkTransactionStatus(transactionResult.id); // Track the confirmation status
                 }
               } else {
                 console.error("No wallet connected. Cannot send transaction.");
@@ -340,6 +330,7 @@
             }
           };
 
+          // Function to check the status of the transaction
           const checkTransactionStatus = async (transactionHash) => {
             try {
               const response = await fetch(
@@ -349,10 +340,6 @@
 
               if (statusData?.result) {
                 console.log("Transaction confirmed:", statusData.result);
-
-                // Call handleSmartContractResponse here
-                handleSmartContractResponse(statusData.result);
-
                 unityInstance.SendMessage(
                   "tonWalletMan",
                   "OnTransactionConfirmed",
