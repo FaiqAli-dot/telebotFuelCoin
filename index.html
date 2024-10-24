@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.20" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.21" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -287,14 +287,14 @@
                 const smartContractAddress =
                   "EQCx9s1ndR8CJB7jG_H3qWhiK9Un5klAsTQyzlQSvmcUTr5A";
 
-                // For a simple transfer (no payload)
                 const transactionParams = {
                   validUntil: Math.floor(Date.now() / 1000) + 3600,
                   messages: [
                     {
                       address: smartContractAddress,
-                      amount: (0.25 * 10 ** 9).toString(), // 0.25 TON
-                      payload: "", // Empty payload for a simple transfer
+                      amount: (0.3 * 10 ** 9).toString(), // 0.3 TON to account for fees
+                      bounce: true,
+                      payload: "", // Empty payload for simple transfer
                     },
                   ],
                 };
@@ -312,9 +312,6 @@
                 if (transactionResult?.id) {
                   checkTransactionStatus(transactionResult.id);
                 }
-                else{
-                  console.log("transactionResult?.id does not exist.");
-                }
               } else {
                 console.error("No wallet connected. Cannot send transaction.");
               }
@@ -328,6 +325,28 @@
             }
           };
 
+          // Add transaction status checking
+          async function checkTransactionStatus(hash) {
+            try {
+              const response = await fetch(
+                `https://toncenter.com/api/v2/transactions/${hash}`
+              );
+              const data = await response.json();
+              console.log("Transaction status:", data);
+
+              // Add more detailed error logging
+              if (data.error) {
+                console.error("Transaction failed:", data.error);
+                unityInstance.SendMessage(
+                  "tonWalletMan",
+                  "OnTransactionFailed",
+                  JSON.stringify(data.error)
+                );
+              }
+            } catch (error) {
+              console.error("Error checking transaction:", error);
+            }
+          }
           // Function to check the status of the transaction
           const checkTransactionStatus = async (transactionHash) => {
             try {
