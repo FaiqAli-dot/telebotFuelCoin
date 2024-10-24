@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.21" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.22" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -348,32 +348,32 @@
             }
           }
           // Function to check the status of the transaction
-          const checkTransactionStatus = async (transactionHash) => {
-            try {
-              const response = await fetch(
-                `https://testnet.toncenter.com/api/v2/getTransaction?hash=${transactionHash}`
-              );
-              const statusData = await response.json();
+          // const checkTransactionStatus = async (transactionHash) => {
+          //   try {
+          //     const response = await fetch(
+          //       `https://testnet.toncenter.com/api/v2/getTransaction?hash=${transactionHash}`
+          //     );
+          //     const statusData = await response.json();
 
-              if (statusData?.result) {
-                console.log("Transaction confirmed:", statusData.result);
-                unityInstance.SendMessage(
-                  "tonWalletMan",
-                  "OnTransactionConfirmed",
-                  JSON.stringify(statusData.result)
-                );
-              } else {
-                console.log("Transaction still pending or failed:", statusData);
-                unityInstance.SendMessage(
-                  "tonWalletMan",
-                  "OnTransactionPendingOrFailed",
-                  JSON.stringify(statusData)
-                );
-              }
-            } catch (error) {
-              console.error("Error while checking transaction status:", error);
-            }
-          };
+          //     if (statusData?.result) {
+          //       console.log("Transaction confirmed:", statusData.result);
+          //       unityInstance.SendMessage(
+          //         "tonWalletMan",
+          //         "OnTransactionConfirmed",
+          //         JSON.stringify(statusData.result)
+          //       );
+          //     } else {
+          //       console.log("Transaction still pending or failed:", statusData);
+          //       unityInstance.SendMessage(
+          //         "tonWalletMan",
+          //         "OnTransactionPendingOrFailed",
+          //         JSON.stringify(statusData)
+          //       );
+          //     }
+          //   } catch (error) {
+          //     console.error("Error while checking transaction status:", error);
+          //   }
+          // };
 
           // Handle smart contract response
           const handleSmartContractResponse = async (response) => {
