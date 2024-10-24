@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.11" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.12" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -286,7 +286,7 @@
               const connectedWallet = tonConnectUI.wallet;
               if (connectedWallet && connectedWallet.account) {
                 const smartContractAddress =
-                  "EQAUqCpU6RKkipe2eaKzbMw9bGhDOyW9ILCrr98DhYDlQjBF"; // Replace with your smart contract address
+                  "EQBESsX9KQwTLVfe3kV3VuWTt1utQ0y4ks1qH6Yq8696amnr"; // Replace with your smart contract address
 
                 // Transaction parameters
                 const transactionParams = {
@@ -294,7 +294,7 @@
                   messages: [
                     {
                       address: smartContractAddress,
-                      amount: (0.1 * 10 ** 9).toString(), // Send 1 TON (convert to nanoTONs)
+                      amount: (0.1 * 10 ** 9).toString(), // Send 0.1 TON (convert to nanoTONs)
                       payload: "", // If your smart contract requires a payload, add it here as a base64 string
                     },
                   ],
