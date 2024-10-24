@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.19" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.20" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -285,37 +285,35 @@
               const connectedWallet = tonConnectUI.wallet;
               if (connectedWallet && connectedWallet.account) {
                 const smartContractAddress =
-                  "EQDPOz6KdtZI8sUEfIOBktNZQvTUOhiTp63gNGq1cKYab3i2"; // Your contract address
+                  "EQCx9s1ndR8CJB7jG_H3qWhiK9Un5klAsTQyzlQSvmcUTr5A";
 
-                // Transaction parameters with an empty payload
+                // For a simple transfer (no payload)
                 const transactionParams = {
-                  validUntil: Math.floor(Date.now() / 1000) + 3600, // Transaction valid for 1 hour
+                  validUntil: Math.floor(Date.now() / 1000) + 3600,
                   messages: [
                     {
                       address: smartContractAddress,
-                      amount: (0.5 * 10 ** 9).toString(), // Send 0.25 TON (convert to nanoTONs)
-                      payload: "", // Empty payload for simple transfer
+                      amount: (0.25 * 10 ** 9).toString(), // 0.25 TON
+                      payload: "", // Empty payload for a simple transfer
                     },
                   ],
                 };
 
-                // Send the transaction
                 const transactionResult = await tonConnectUI.sendTransaction(
                   transactionParams
                 );
-
                 console.log("Transaction sent, result:", transactionResult);
-
-                // Forward result to Unity
                 unityInstance.SendMessage(
                   "tonWalletMan",
                   "OnTransactionResult",
                   JSON.stringify(transactionResult)
                 );
 
-                // Check the transaction status
                 if (transactionResult?.id) {
-                  checkTransactionStatus(transactionResult.id); // Track the confirmation status
+                  checkTransactionStatus(transactionResult.id);
+                }
+                else{
+                  console.log("transactionResult?.id does not exist.");
                 }
               } else {
                 console.error("No wallet connected. Cannot send transaction.");
