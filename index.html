@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.31" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.32" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -229,11 +229,13 @@
                 }
                 // Fetch and log balance
                 const balanceResponse = await fetch(
-                  `https://testnet.toncenter.com/api/v2/getAddressBalance?address=${connectedWallet.account.address}`
+                  `https://testnet.toncenter.com/api/v2/getAddressInformation?address=${connectedWallet.account.address}&api_key=${apiKey}`
                 );
+
                 const balanceData = await balanceResponse.json();
-                if (balanceData.result) {
-                  const balance = balanceData.result / 10 ** 9; // Convert from nanoTONs to TONs
+                if (balanceData.result && balanceData.result.balance) {
+                  const balance =
+                    parseInt(balanceData.result.balance, 10) / 10 ** 9; // Convert from nanoTONs to TONs
                   console.log("Wallet balance:", balance, "TONs");
                 } else {
                   console.log("Error fetching balance:", balanceData);
@@ -289,7 +291,7 @@
               }
 
               const smartContractAddress =
-                "EQAfIXXmA4K-fNPJCuhNb5zuUq_Pk7SyNN4DiJDIA3tN63aP";
+                "EQD71OhEcIfCXCABvpFz0aPN8Ad056oD5zoStbQeVw_xnRzY";
 
               const amount = 0.5 * 10 ** 9; // Increased to 0.5 TON
               console.log("Sending amount:", amount / 10 ** 9, "TON");
