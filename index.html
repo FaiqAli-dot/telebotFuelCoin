@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.27" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.28" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -288,7 +288,7 @@
             throw new Error("No wallet connected");
         }
 
-        const smartContractAddress = "EQBgokh6vKlQ2c1rfhIZEuQ30SnEDQZPTPHTHUJwlLwUjcXz";
+        const smartContractAddress = "EQAiREakhcgnwtlyUXAGlx457nPfDWVHV07hY2oyD8t5-JMp";
         
         // First verify the contract
         try {
@@ -296,7 +296,7 @@
             // console.log("Connected wallet address:", addresses[0]);
             
             // Log transaction parameters
-            const amount = 0.35 * 10**9;
+            const amount = 0.5 * 10**9;
             console.log("Sending amount:", amount / 10**9, "TON");
             
             const transactionParams = {
@@ -306,7 +306,7 @@
                         address: smartContractAddress,
                         amount: amount.toString(),
                         bounce: true,
-                        payload: ""
+                        payload: "te6ccgEBAQEAAgAAAA=="
                     }
                 ]
             };
