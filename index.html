@@ -37,6 +37,22 @@
       </div>
     </div>
     <script>
+
+async function getContractState() {
+    try {
+        const smartContractAddress = "EQAN56QuYt34Cd5SFNTBqlSMy-7CbMyicbTer3Ktw2xO59vn";
+        const state = await tonConnectUI.getMethods(smartContractAddress, "get_contract_state");
+        console.log("Contract State:", state);
+        // Decode the integers back to addresses if necessary
+    } catch (error) {
+        console.error("Error fetching contract state:", error);
+    }
+}
+
+getContractState();
+
+    </script>
+    <script>
       // Unity-JavaScript Communication Bridge
       let unityInstance = null;
 
