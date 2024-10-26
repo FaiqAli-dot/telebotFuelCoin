@@ -5,12 +5,15 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.74" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.75" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <!-- Load the TonConnect SDK -->
     <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
+    <!-- Load TonWeb for contract state decoding -->
+<script src="https://unpkg.com/tonweb@latest/dist/tonweb.min.js"></script>
+
   </head>
 
   <body>
@@ -289,57 +292,58 @@
           };
 
           window.CheckIfWalletConnected = async function () {
-            try {
-              const connectedWallet = tonConnectUI.wallet;
-              if (connectedWallet && connectedWallet.account) {
-                console.log(
-                  "Wallet is already connectedsssss:",
-                  connectedWallet.account.address
-                );
-                // Check network based on chain ID
-                const network = connectedWallet.account.chain;
-                if (network === "-3") {
-                  console.log("Connected to testnet");
-                } else if (network === "-239") {
-                  console.log("Connected to mainnet");
-                } else {
-                  console.log("Connected to unknown network:", network);
-                }
-                // Fetch and log balance
-                const balanceResponse = await fetch(
-                  `https://testnet.toncenter.com/api/v2/getAddressInformation?address=${connectedWallet.account.address}&api_key=${apiKey}`
-                );
+  try {
+    const connectedWallet = tonConnectUI.wallet;
+    if (connectedWallet && connectedWallet.account) {
+      console.log(
+        "Wallet is already connected:",
+        connectedWallet.account.address
+      );
+      // Check network based on chain ID
+      const network = connectedWallet.account.chain;
+      if (network === "-3") {
+        console.log("Connected to testnet");
+      } else if (network === "-239") {
+        console.log("Connected to mainnet");
+      } else {
+        console.log("Connected to unknown network:", network);
+      }
+      // Fetch and log balance directly from TonCenter's API with API key
+      const balanceResponse = await fetch(
+        `https://testnet.toncenter.com/api/v2/getAddressInformation?address=${connectedWallet.account.address}`
+      );
 
-                const balanceData = await balanceResponse.json();
-                if (balanceData.result && balanceData.result.balance) {
-                  const balance =
-                    parseInt(balanceData.result.balance, 10) / 10 ** 9; // Convert from nanoTONs to TONs
-                  console.log("Wallet balance:", balance, "TONs");
-                } else {
-                  console.log("Error fetching balance:", balanceData);
-                }
+      const balanceData = await balanceResponse.json();
+      if (balanceData.result && balanceData.result.balance) {
+        const balance =
+          parseInt(balanceData.result.balance, 10) / 10 ** 9; // Convert from nanoTONs to TONs
+        console.log("Wallet balance:", balance, "TONs");
+      } else {
+        console.log("Error fetching balance:", balanceData);
+      }
 
-                unityInstance.SendMessage(
-                  "tonWalletMan",
-                  "OnWalletConnected",
-                  connectedWallet.account.address
-                );
-              } else {
-                console.log("No wallet is connected.");
-                unityInstance.SendMessage(
-                  "tonWalletMan",
-                  "OnWalletNotConnected"
-                );
-              }
-            } catch (error) {
-              console.error("Error while checking wallet connection:", error);
-              unityInstance.SendMessage(
-                "tonWalletMan",
-                "OnWalletConnectionCheckFailed",
-                error.message
-              );
-            }
-          };
+      // Send connected wallet address to Unity
+      unityInstance.SendMessage(
+        "tonWalletMan",
+        "OnWalletConnected",
+        connectedWallet.account.address
+      );
+    } else {
+      console.log("No wallet is connected.");
+      unityInstance.SendMessage(
+        "tonWalletMan",
+        "OnWalletNotConnected"
+      );
+    }
+  } catch (error) {
+    console.error("Error while checking wallet connection:", error);
+    unityInstance.SendMessage(
+      "tonWalletMan",
+      "OnWalletConnectionCheckFailed",
+      error.message
+    );
+  }
+};
 
           // Listen for wallet changes
           // Listen for wallet changes (connection, disconnection)
