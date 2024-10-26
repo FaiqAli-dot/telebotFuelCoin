@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.68" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.69" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -40,6 +40,7 @@
     <script>
       // Unity-JavaScript Communication Bridge
       let unityInstance = null;
+      let tonConnectUI;
 
       function onUnityLoaded(unity) {
 
@@ -145,7 +146,7 @@
           //   buttonRootId: 'ton-connect',
           //   networkType: 'testnet',
           // });
-          const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+          let tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl:
               "https://faiqali-dot.github.io/tonconnect-manifest/tonconnect-manifest.json",
             buttonRootId: "ton-connect",
@@ -155,6 +156,7 @@
               theme: "SYSTEM",
             },
           });
+          window.tonConnectUI = tonConnectUI;
           getContractState();
 
           // Setup the function that Unity will call to connect to Ton Wallet
