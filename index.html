@@ -36,9 +36,13 @@
         <div id="unity-build-title">Telegram_Game</div>
       </div>
     </div>
-    <script>
 
-async function getContractState() {
+    <script>
+      // Unity-JavaScript Communication Bridge
+      let unityInstance = null;
+
+      function onUnityLoaded(unity) {
+        async function getContractState() {
     try {
         const smartContractAddress = "EQAN56QuYt34Cd5SFNTBqlSMy-7CbMyicbTer3Ktw2xO59vn";
         const state = await tonConnectUI.getMethods(smartContractAddress, "get_contract_state");
@@ -51,12 +55,6 @@ async function getContractState() {
 
 getContractState();
 
-    </script>
-    <script>
-      // Unity-JavaScript Communication Bridge
-      let unityInstance = null;
-
-      function onUnityLoaded(unity) {
         console.log("Unity loaded and ready");
         unityInstance = unity;
         window.unityInstance = unity; // Make it globally accessible if needed
