@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.64" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.65" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -42,18 +42,7 @@
       let unityInstance = null;
 
       function onUnityLoaded(unity) {
-        async function getContractState() {
-    try {
-        const smartContractAddress = "EQAN56QuYt34Cd5SFNTBqlSMy-7CbMyicbTer3Ktw2xO59vn";
-        const state = await tonConnectUI.getMethods(smartContractAddress, "get_contract_state");
-        console.log("Contract State:", state);
-        // Decode the integers back to addresses if necessary
-    } catch (error) {
-        console.error("Error fetching contract state:", error);
-    }
-}
 
-getContractState();
 
         console.log("Unity loaded and ready");
         unityInstance = unity;
@@ -123,7 +112,18 @@ getContractState();
 
       // Initialize SSE handling
       handleSSE();
+      async function getContractState() {
+    try {
+        const smartContractAddress = "EQAN56QuYt34Cd5SFNTBqlSMy-7CbMyicbTer3Ktw2xO59vn";
+        const state = await tonConnectUI.getMethods(smartContractAddress, "get_contract_state");
+        console.log("Contract State:", state);
+        // Decode the integers back to addresses if necessary
+    } catch (error) {
+        console.error("Error fetching contract state:", error);
+    }
+}
 
+getContractState();
       // Function to manually reconnect SSE if needed
       window.reconnectSSE = function () {
         if (eventSource) {
