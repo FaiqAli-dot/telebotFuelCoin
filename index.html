@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.99" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.100" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -376,59 +376,53 @@
           });
           // "EQAwsPCDE0AGxHG0vLHeoSCwhqdTC1rJuuNVSwLUun8xCuxu";
           window.sendTransaction = async function () {
-            try {
-              const connectedWallet = tonConnectUI.wallet;
-              if (!connectedWallet || !connectedWallet.account) {
-                throw new Error("No wallet connected");
-              }
+  try {
+    const connectedWallet = tonConnectUI.wallet;
+    if (!connectedWallet || !connectedWallet.account) {
+      throw new Error("No wallet connected");
+    }
 
-              const smartContractAddress =
-                "EQBo8iA_kc31M_TR3kEDrJT3GBqcbDipFUBLJKUWPfJUDm0K";
+    // Define the destination address for the transaction
+    const destinationAddress = "EQCbLY8JQrYLDirnngnTNbGSh4ltCwQsY4kjZwQxnwuSLpSx"; // Set this to your contract address
 
-              const amount = 0.3 * 10 ** 9; // Increased to 0.5 TON
-              console.log("Sending amount:", amount / 10 ** 9, "TON");
+    // Amount to send in TONs
+    const amountTON = 0.3; // e.g., 0.3 TON
+    const amountInNanoTON = amountTON * 10 ** 9; // Convert to nanoTONs
 
-              // Create a properly formatted empty message for simple transfer
-              const transactionParams = {
-                validUntil: Math.floor(Date.now() / 1000) + 3600,
-                messages: [
-                  {
-                    address: smartContractAddress,
-                    amount: amount.toString(),
-                    bounce: false, // Set to false to ensure the message isn't ignored
-                    // Use proper empty payload format for FunC
-                    payload: "te6ccgEBAQEAAgAAAA==", // Empty message in BOC format
-                  },
-                ],
-              };
+    // Optional comment payload, converted to Base64 BOC format if necessary
+    const comment = "Transaction from web app"; // Example comment
+    const payloadBase64 = btoa(comment); // Encode comment in Base64
 
-              console.log(
-                "Transaction params:",
-                JSON.stringify(transactionParams, null, 2)
-              );
+    // Define transaction parameters
+    const transactionParams = {
+      validUntil: Math.floor(Date.now() / 1000) + 3600, // Valid for 1 hour
+      messages: [
+        {
+          address: destinationAddress,
+          amount: amountInNanoTON.toString(),
+          bounce: false, // Set bounce as needed for your contract
+          payload: payloadBase64, // Use Base64 encoded payload if the contract requires it
+        },
+      ],
+    };
 
-              // Send transaction
-              const transactionResult = await tonConnectUI.sendTransaction(
-                transactionParams
-              );
-              console.log("Transaction result:", transactionResult);
+    console.log("Transaction parameters:", JSON.stringify(transactionParams, null, 2));
 
-              if (transactionResult?.boc) {
-                console.log("Transaction hash:", transactionResult.boc);
-                console.log("Transaction hash:", transactionResult);
-              }
-            } catch (error) {
-              console.error("Transaction error:", error);
-              if (error.message) {
-                console.error("Error details:", error.message);
-              }
-              unityInstance.SendMessage(
-                "tonWalletMan",
-                "OnTransactionFailed",
-                error.message || "Transaction failed"
-              );
-            }
-          };
+    // Send the transaction through TonConnect
+    const transactionResult = await tonConnectUI.sendTransaction(transactionParams);
+    console.log("Transaction result:", transactionResult);
+
+    if (transactionResult?.boc) {
+      console.log("Transaction hash:", transactionResult.boc);
+      sendMessageToUnity("tonWalletMan", "OnTransactionSent", transactionResult.boc);
+    } else {
+      throw new Error("Transaction failed or was canceled.");
+    }
+  } catch (error) {
+    console.error("Transaction error:", error);
+    sendMessageToUnity("tonWalletMan", "OnTransactionFailed", error.message || "Transaction failed");
+  }
+};
 
           async function monitorTransaction(boc) {
             try {
