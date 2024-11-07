@@ -395,16 +395,17 @@
 
     // Define transaction parameters
     const transactionParams = {
-      validUntil: Math.floor(Date.now() / 1000) + 3600, // Valid for 1 hour
-      messages: [
-        {
-          address: destinationAddress,
-          amount: amountInNanoTON.toString(),
-          bounce: false, // Set bounce as needed for your contract
-          payload: payloadBase64, // Use Base64 encoded payload if the contract requires it
-        },
-      ],
-    };
+  validUntil: Math.floor(Date.now() / 1000) + 3600, // Valid for 1 hour
+  messages: [
+    {
+      address: destinationAddress,
+      amount: amountInNanoTON.toString(),
+      bounce: false, // Set bounce as needed for your contract
+      // No payload parameter
+      sendMode: 1,
+    },
+  ],
+};
 
     console.log("Transaction parameters:", JSON.stringify(transactionParams, null, 2));
 
