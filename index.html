@@ -383,33 +383,25 @@
     }
 
     // Define the destination address for the transaction
-    const destinationAddress = "EQDWrzb_UWgp6vA720jhsGwWT6kz4ZugO0MQOmgpAH2JMcvz"; // Replace with your contract address
+    const destinationAddress = "EQCnYG_hyNrpbXlEYqX3X0xuRhMpMnHZJ3Bkpo0qBt8cFLcb";
 
-    // Amount to send in TONs (0.3 TON)
+    // Amount to send in TONs
     const amountTON = 0.3;
-    const amountInNanoTON = amountTON * 10 ** 9; // Convert to nanoTONs
+    const amountInNanoTON = amountTON * 10 ** 9;
 
-    // Create a simple payload to ensure message body is not empty
-    const payload = {
-      op: 1, // Operation code
-      timestamp: Date.now()
-    };
+    // Use a simple base64-encoded empty cell as payload
+    // This is a valid TON cell that contains an op code of 1
+    const payload = "te6ccgEBAQEAAgAAAA=="; // Empty cell with op 0
 
-    // Convert payload to bytes
-    const payloadBytes = new TextEncoder().encode(JSON.stringify(payload));
-    
-    // Convert to Base64
-    const payloadBase64 = btoa(String.fromCharCode(...payloadBytes));
-
-    // Transaction parameters
+    // Define transaction parameters
     const transactionParams = {
-      validUntil: Math.floor(Date.now() / 1000) + 3600, // Valid for 1 hour
+      validUntil: Math.floor(Date.now() / 1000) + 3600,
       messages: [
         {
           address: destinationAddress,
           amount: amountInNanoTON.toString(),
           bounce: false,
-          payload: payloadBase64,
+          payload: payload,
           sendMode: 1
         },
       ],
@@ -417,7 +409,7 @@
 
     console.log("Sending transaction with parameters:", JSON.stringify(transactionParams, null, 2));
 
-    // Send transaction
+    // Send the transaction through TonConnect
     const transactionResult = await tonConnectUI.sendTransaction(transactionParams);
     console.log("Transaction result:", transactionResult);
 
@@ -432,7 +424,7 @@
     sendMessageToUnity("tonWalletMan", "OnTransactionFailed", error.message || "Transaction failed");
   }
 };
-          async function monitorTransaction(boc) {
+async function monitorTransaction(boc) {
             try {
               // Wait for 5 seconds to allow transaction to process
               await new Promise((resolve) => setTimeout(resolve, 5000));
