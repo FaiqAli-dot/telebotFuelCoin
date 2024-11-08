@@ -383,34 +383,41 @@
     }
 
     // Define the destination address for the transaction
-    const destinationAddress = "EQArNpOXw2xISTwBAZ9C9J9f8srs1jbRGLwa-lOqO-VGdty1"; // Set this to your contract address
+    const destinationAddress = "EQArNpOXw2xISTwBAZ9C9J9f8srs1jbRGLwa-lOqO-VGdty1"; // Replace with your contract address
 
-    // Amount to send in TONs
-    const amountTON = 0.3; // e.g., 0.3 TON
+    // Amount to send in TONs (0.3 TON)
+    const amountTON = 0.3;
     const amountInNanoTON = amountTON * 10 ** 9; // Convert to nanoTONs
 
-    // Optional comment payload, converted to Base64 BOC format if necessary
-    const comment = "Transaction from web app"; // Example comment
-    const payloadBase64 = btoa(comment); // Encode comment in Base64
+    // Create a simple payload to ensure message body is not empty
+    const payload = {
+      op: 1, // Operation code
+      timestamp: Date.now()
+    };
 
-    // Define transaction parameters
+    // Convert payload to bytes
+    const payloadBytes = new TextEncoder().encode(JSON.stringify(payload));
+    
+    // Convert to Base64
+    const payloadBase64 = btoa(String.fromCharCode(...payloadBytes));
+
+    // Transaction parameters
     const transactionParams = {
-  validUntil: Math.floor(Date.now() / 1000) + 3600, // Valid for 1 hour
-  messages: [
-    {
-      address: destinationAddress,
-      amount: amountInNanoTON.toString(),
-      bounce: false, // Set bounce as needed for your contract
-      // No payload parameter
-      sendMode: 1,
-       payload: "te6ccgEBAQEAAgAAAA=="
-    },
-  ],
-};
+      validUntil: Math.floor(Date.now() / 1000) + 3600, // Valid for 1 hour
+      messages: [
+        {
+          address: destinationAddress,
+          amount: amountInNanoTON.toString(),
+          bounce: false,
+          payload: payloadBase64,
+          sendMode: 1
+        },
+      ],
+    };
 
-    console.log("Transaction parameters:", JSON.stringify(transactionParams, null, 2));
+    console.log("Sending transaction with parameters:", JSON.stringify(transactionParams, null, 2));
 
-    // Send the transaction through TonConnect
+    // Send transaction
     const transactionResult = await tonConnectUI.sendTransaction(transactionParams);
     console.log("Transaction result:", transactionResult);
 
@@ -425,7 +432,6 @@
     sendMessageToUnity("tonWalletMan", "OnTransactionFailed", error.message || "Transaction failed");
   }
 };
-
           async function monitorTransaction(boc) {
             try {
               // Wait for 5 seconds to allow transaction to process
