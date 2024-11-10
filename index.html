@@ -375,7 +375,7 @@
             }
           });
           // "EQAwsPCDE0AGxHG0vLHeoSCwhqdTC1rJuuNVSwLUun8xCuxu";
-          window.sendTransaction = async function () {
+          window.sendTransaction = async function (optionalAddress) {
   try {
     const connectedWallet = tonConnectUI.wallet;
     if (!connectedWallet || !connectedWallet.account) {
@@ -391,7 +391,16 @@
 
     // Create a non-empty payload with operation code 1
     // This will ensure the contract doesn't treat it as an empty deployment message
-    const payload = "te6ccgEBAQEAAgAAAA=="; // Cell with 32-bit unsigned int value 1
+    if (optionalAddress) {
+      // Convert the address to a Cell with the address
+      const cell = beginCell()
+        .storeAddress(Address.parse(optionalAddress))
+        .endCell();
+      payload = cell.toBoc().toString('base64');
+    } else {
+      // Use empty cell if no address provided
+      payload = "te6ccgEBAQEAAgAAAA==";
+    }
 
     // Define transaction parameters
     const transactionParams = {
@@ -424,6 +433,7 @@
     sendMessageToUnity("tonWalletMan", "OnTransactionFailed", error.message || "Transaction failed");
   }
 };
+
 async function monitorTransaction(boc) {
             try {
               // Wait for 5 seconds to allow transaction to process
