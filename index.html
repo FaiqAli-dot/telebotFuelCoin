@@ -249,26 +249,21 @@
         connectedWallet.account.address
       );
 
-      // Use TonWeb to convert the address to the friendly format
-      const TonWeb = window.TonWeb; // Ensure TonWeb is loaded
-      const addressFriendly = TonWeb.Address.parse(
-        connectedWallet.account.address
-      ).toString(true, true, true);
+      // Create a new instance of TonWeb
+      const tonweb = new TonWeb(new TonWeb.HttpProvider('https://testnet.toncenter.com/api/v2/jsonRPC'));
+      const friendlyAddress = new tonweb.utils.Address(connectedWallet.account.address).toString(true, true, true);
 
-      console.log("Friendly Wallet Address:", addressFriendly);
+      console.log("Friendly Wallet Address:", friendlyAddress);
 
       // Send the friendly address to Unity
       unityInstance.SendMessage(
         "tonWalletMan",
         "OnWalletConnected",
-        addressFriendly
+        friendlyAddress
       );
 
-      // Optionally save or use the friendly address as needed
-      unityInstance.SendMessage("tonWalletManager", "OnWalletConnected", addressFriendly);
-
       // For debugging or additional backend logic
-      console.log("Saved Friendly Wallet Address:", addressFriendly);
+      console.log("Saved Friendly Wallet Address:", friendlyAddress);
     } else {
       console.error("Error: No connected wallet account found.");
       unityInstance.SendMessage(
@@ -287,6 +282,7 @@
   }
 };
 
+Versio
           window.DisconnectTonWallet = async function () {
             try {
               if (tonConnectUI.wallet) {
@@ -310,7 +306,6 @@
               );
             }
           };
-
           window.CheckIfWalletConnected = async function () {
   try {
     const connectedWallet = tonConnectUI.wallet;
@@ -319,6 +314,13 @@
         "Wallet is already connected:",
         connectedWallet.account.address
       );
+      
+      // Create a new instance of TonWeb
+      const tonweb = new TonWeb(new TonWeb.HttpProvider('https://testnet.toncenter.com/api/v2/jsonRPC'));
+      const friendlyAddress = new tonweb.utils.Address(connectedWallet.account.address).toString(true, true, true);
+      
+      console.log("Friendly address format:", friendlyAddress);
+      
       // Check network based on chain ID
       const network = connectedWallet.account.chain;
       if (network === "-3") {
@@ -328,6 +330,7 @@
       } else {
         console.log("Connected to unknown network:", network);
       }
+
       // Fetch and log balance directly from TonCenter's API with API key
       const balanceResponse = await fetch(
         `https://testnet.toncenter.com/api/v2/getAddressInformation?address=${connectedWallet.account.address}`
@@ -341,14 +344,12 @@
       } else {
         console.log("Error fetching balance:", balanceData);
       }
-      let addressToParse = connectedWallet.account.address;
-      const friendlyAddress = addressToParse.parse(connectedWallet.account.address).toString({ urlSafe: true });
-      console.log("inCHECKIFWALLETISCONNECTED: ", friendlyAddress);
-      // Send connected wallet address to Unity
+
+      // Send friendly address format to Unity
       unityInstance.SendMessage(
         "tonWalletMan",
         "OnWalletConnected",
-        connectedWallet.account.address
+        friendlyAddress
       );
     } else {
       console.log("No wallet is connected.");
@@ -366,7 +367,6 @@
     );
   }
 };
-
   
           // Listen for wallet changes
           // Listen for wallet changes (connection, disconnection)
