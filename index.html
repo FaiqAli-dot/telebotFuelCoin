@@ -5,14 +5,14 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.118" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.119" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <!-- Load the TonConnect SDK -->
     <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
     <!-- Load TonWeb for contract state decoding -->
-<script src="https://unpkg.com/tonweb@latest/dist/tonweb.min.js"></script>
+<script src="https://unpkg.com/tonweb@latest/dist/tonweb.js"></script>
 
   </head>
 
@@ -235,50 +235,57 @@
 
           // Setup the function that Unity will call to connect to Ton Wallet
           window.ConnectToTonWallet = async function () {
-            try {
-              console.log("Attempting to open Ton Wallet modal...");
-              if (!tonConnectUI.wallet) {
-                await tonConnectUI.openModal(); // Opens the wallet selection modal
-              }
+  try {
+    console.log("Attempting to open Ton Wallet modal...");
+    if (!tonConnectUI.wallet) {
+      await tonConnectUI.openModal(); // Opens the wallet selection modal
+    }
 
-              console.log("Ton Wallet modal opened successfully.");
-              const connectedWallet = tonConnectUI.wallet;
-              if (connectedWallet && connectedWallet.account) {
-                console.log(
-                  "Connected Wallet Address:",
-                  connectedWallet.account.address
-                );
-                console.log("unityInstance: ", unityInstance);
-                
-                setTimeout(() => {
-                  unityInstance.SendMessage(
-                    "tonWalletMan",
-                    "OnWalletConnected",
-                    connectedWallet.account.address
-                  );
-                }, 1000);
+    console.log("Ton Wallet modal opened successfully.");
+    const connectedWallet = tonConnectUI.wallet;
+    if (connectedWallet && connectedWallet.account) {
+      console.log(
+        "Connected Wallet Address:",
+        connectedWallet.account.address
+      );
 
-                unityInstance.SendMessage('tonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-                let addressToParse = connectedWallet.account.address;
-                const friendlyAddress = addressToParse.parse(connectedWallet.account.address).toString({ urlSafe: true });
-                console.log("inCHECKIFWALLETISCONNECTED: ", friendlyAddress);
-              } else {
-                console.error("Error: No connected wallet account found.");
-                unityInstance.SendMessage(
-                  "tonWalletMan",
-                  "OnWalletConnectionFailed",
-                  "No account found"
-                );
-              }
-            } catch (error) {
-              console.error("Error while connecting to wallet:", error);
-              unityInstance.SendMessage(
-                "tonWalletMan",
-                "OnWalletConnectionFailed",
-                error.message
-              );
-            }
-          };
+      // Use TonWeb to convert the address to the friendly format
+      const TonWeb = window.TonWeb; // Ensure TonWeb is loaded
+      const addressFriendly = TonWeb.Address.parse(
+        connectedWallet.account.address
+      ).toString(true, true, true);
+
+      console.log("Friendly Wallet Address:", addressFriendly);
+
+      // Send the friendly address to Unity
+      unityInstance.SendMessage(
+        "tonWalletMan",
+        "OnWalletConnected",
+        addressFriendly
+      );
+
+      // Optionally save or use the friendly address as needed
+      unityInstance.SendMessage("tonWalletManager", "OnWalletConnected", addressFriendly);
+
+      // For debugging or additional backend logic
+      console.log("Saved Friendly Wallet Address:", addressFriendly);
+    } else {
+      console.error("Error: No connected wallet account found.");
+      unityInstance.SendMessage(
+        "tonWalletMan",
+        "OnWalletConnectionFailed",
+        "No account found"
+      );
+    }
+  } catch (error) {
+    console.error("Error while connecting to wallet:", error);
+    unityInstance.SendMessage(
+      "tonWalletMan",
+      "OnWalletConnectionFailed",
+      error.message
+    );
+  }
+};
 
           window.DisconnectTonWallet = async function () {
             try {
