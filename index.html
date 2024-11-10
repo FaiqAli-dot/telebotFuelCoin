@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.117" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.118" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -259,7 +259,8 @@
                 }, 1000);
 
                 unityInstance.SendMessage('tonWalletManager', 'OnWalletConnected', connectedWallet.account.address);
-                const friendlyAddress = Address.parse(connectedWallet.account.address).toString({ urlSafe: true });
+                let addressToParse = connectedWallet.account.address;
+                const friendlyAddress = addressToParse.parse(connectedWallet.account.address).toString({ urlSafe: true });
                 console.log("inCHECKIFWALLETISCONNECTED: ", friendlyAddress);
               } else {
                 console.error("Error: No connected wallet account found.");
@@ -333,7 +334,8 @@
       } else {
         console.log("Error fetching balance:", balanceData);
       }
-      const friendlyAddress = Address.parse(connectedWallet.account.address).toString({ urlSafe: true });
+      let addressToParse = connectedWallet.account.address;
+      const friendlyAddress = addressToParse.parse(connectedWallet.account.address).toString({ urlSafe: true });
       console.log("inCHECKIFWALLETISCONNECTED: ", friendlyAddress);
       // Send connected wallet address to Unity
       unityInstance.SendMessage(
