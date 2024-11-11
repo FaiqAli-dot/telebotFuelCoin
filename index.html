@@ -428,7 +428,7 @@
                 );
 
                 // Convert the cell to base64
-                payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+                payload = optionalAddress;
               } else {
                 // Use empty cell if no address provided
                 payload = "te6ccgEBAQEAAgAAAA==";
@@ -478,6 +478,7 @@
               );
             }
           };
+          
           async function monitorTransaction(boc) {
             try {
               // Wait for 5 seconds to allow transaction to process
