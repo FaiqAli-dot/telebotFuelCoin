@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.140" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.141" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -482,44 +482,53 @@
     }
 };
 
-          async function monitorTransaction(boc, friendlyAddress) {
-            try {
-              // Wait a few seconds to allow the transaction to be processed
-              await new Promise((resolve) => setTimeout(resolve, 5000));
+async function monitorTransaction(boc, friendlyAddress) {
+    const timeout = 2 * 60 * 1000; // 2 minutes in milliseconds
+    const interval = 5000; // Check every 5 seconds
+    const startTime = Date.now();
 
-              // Fetch the transaction status using the TON API
-              const response = await fetch(
-                `https://testnet.toncenter.com/api/v2/getTransactions?address=${friendlyAddress}`
-              );
-              const data = await response.json();
+    // Keep checking until transaction is finalized or timeout is reached
+    const checkTransaction = async () => {
+        try {
+            // Fetch the transaction status from the blockchain
+            const response = await fetch(
+                `https://testnet.toncenter.com/api/v2/getTransaction?hash=${boc}`
+            );
+            const data = await response.json();
 
-              if (data.result && data.result.length > 0) {
-                // Loop through transactions to check for the specific one
-                const transaction = data.result.find((tx) => tx.boc === boc);
+            // If the transaction is finalized
+            if (data.result && data.result.status === "finalized") {
+                console.log("Transaction finalized:", data.result);
 
-                if (transaction && transaction.status === "finalized") {
-                  // Call the Unity method to handle the success
-                  unityInstance.SendMessage(
-                    "tonWalletMan",
-                    "OnTransactionSuccess",
-                    transaction.hash
-                  );
-                } else {
-                  console.error("Transaction not finalized yet.");
-                }
-              } else {
-                console.error("Transaction not found or still pending.");
-              }
-            } catch (error) {
-              console.error("Error monitoring transaction:", error);
-              unityInstance.SendMessage(
-                "tonWalletMan",
-                "OnTransactionFailed",
-                error.message
-              );
+                // Notify Unity of success
+                sendMessageToUnity("tonWalletMan", "OnTransactionSuccess", friendlyAddress);
+
+                // Optionally, update the backend to mark this transaction as verified
+                // updateBackendStatus(friendlyAddress, "verified");
+
+                return; // Exit the loop on success
+            } else {
+                console.log("Transaction not finalized yet.");
             }
-          }
 
+            // Check if the timeout is reached
+            if (Date.now() - startTime < timeout) {
+                // Continue checking after a delay
+                setTimeout(checkTransaction, interval);
+            } else {
+                // If timeout is reached, notify Unity of the failure
+                console.log("Transaction monitoring timed out.");
+                sendMessageToUnity("tonWalletMan", "OnTransactionTimeout", "Transaction not finalized in time.");
+            }
+        } catch (error) {
+            console.error("Error monitoring transaction:", error);
+            sendMessageToUnity("tonWalletMan", "OnTransactionFailed", "Error monitoring transaction.");
+        }
+    };
+
+    // Start the first check
+    checkTransaction();
+}
           // Add transaction status checking
           async function checkTransactionStatus(hash) {
             try {
