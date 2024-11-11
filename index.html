@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.136" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.137" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -458,7 +458,11 @@
                 transactionParams
               );
               console.log("Transaction result:", transactionResult);
+              const friendlyAddress = new tonweb.utils.Address(
+            connectedWallet.account.address
+        ).toString(true, true, true);
 
+        console.log("Using friendly address:", friendlyAddress);
               if (transactionResult?.boc) {
                 console.log("Transaction hash:", transactionResult.boc);
                 sendMessageToUnity(
