@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.135" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.136" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -467,7 +467,7 @@
                   transactionResult.boc
                 );
 
-                monitorTransaction(transactionResult.boc);
+                monitorTransaction(transactionResult.boc, friendlyAddress);
               } else {
                 throw new Error("Transaction failed or was canceled.");
               }
@@ -481,14 +481,14 @@
             }
           };
 
-          async function monitorTransaction(boc) {
+          async function monitorTransaction(boc, friendlyAddress) {
             try {
               // Wait a few seconds to allow the transaction to be processed
               await new Promise((resolve) => setTimeout(resolve, 5000));
 
               // Fetch the transaction status using the TON API
               const response = await fetch(
-                `https://testnet.toncenter.com/api/v2/getTransactions?address=${your_wallet_address}`
+                `https://testnet.toncenter.com/api/v2/getTransactions?address=${friendlyAddress}`
               );
               const data = await response.json();
 
@@ -512,7 +512,7 @@
             } catch (error) {
               console.error("Error monitoring transaction:", error);
               unityInstance.SendMessage(
-                "TonWalletManager",
+                "tonWalletMan",
                 "OnTransactionFailed",
                 error.message
               );
