@@ -411,6 +411,8 @@
             connectedWallet.account.address
         ).toString(true, true, true);
 
+        
+
         console.log("Using friendly address:", friendlyAddress);
 
         // Define the destination address for the transaction
@@ -468,7 +470,7 @@
             );
 
             // Start monitoring the transaction and pass the friendly address
-            monitorTransaction(transactionResult.boc, friendlyAddress);
+            // monitorTransaction(transactionResult.boc, friendlyAddress);
         } else {
             throw new Error("Transaction failed or was canceled.");
         }
