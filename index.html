@@ -12,8 +12,7 @@
     <!-- Load the TonConnect SDK -->
     <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
     <!-- Load TonWeb for contract state decoding -->
-<script src="https://unpkg.com/tonweb@latest/dist/tonweb.js"></script>
-
+    <script src="https://unpkg.com/tonweb@latest/dist/tonweb.js"></script>
   </head>
 
   <body>
@@ -46,8 +45,6 @@
       let tonConnectUI;
 
       function onUnityLoaded(unity) {
-
-
         console.log("Unity loaded and ready");
         unityInstance = unity;
         window.unityInstance = unity; // Make it globally accessible if needed
@@ -118,7 +115,7 @@
       handleSSE();
       async function getContractState() {
         try {
-          const TONCENTER_API_KEY = 'YOUR_TONCENTER_API_KEY'; // Replace with your actual TonCenter API key
+          const TONCENTER_API_KEY = "YOUR_TONCENTER_API_KEY"; // Replace with your actual TonCenter API key
           const smartContractAddress =
             "EQAN56QuYt34Cd5SFNTBqlSMy-7CbMyicbTer3Ktw2xO59vn";
 
@@ -134,15 +131,13 @@
 
             if (typeof window.TonWeb !== "undefined") {
               console.log("tonWEBISCONNCECT!!!");
-              
-            }else{
+            } else {
               console.log("NOT NOT tonWEBISCONNCECT!!!");
-
             }
 
             // Initialize TonWeb
             const TonWeb = window.TonWeb; // Ensure TonWeb is loaded
-            
+
             const provider = new TonWeb.HttpProvider(
               "https://testnet.toncenter.com/api/v2/jsonRPC"
             ); // TonCenter's Testnet RPC
@@ -162,8 +157,8 @@
 
             const owner_address_bits = slice.read_uint(256);
             const addr1_cell = slice.read_ref();
-            const addr1_bits = tonweb
-              .boc.decode_cell(addr1_cell)
+            const addr1_bits = tonweb.boc
+              .decode_cell(addr1_cell)
               .begin_parse()
               .read_uint(256);
 
@@ -205,8 +200,6 @@
         handleSSE();
       };
 
-
-
       // Wait until everything is loaded before initializing Unity and TonConnect
       window.addEventListener("load", () => {
         console.log("SDK and DOM Loaded.");
@@ -235,53 +228,58 @@
 
           // Setup the function that Unity will call to connect to Ton Wallet
           window.ConnectToTonWallet = async function () {
-  try {
-    console.log("Attempting to open Ton Wallet modal...");
-    if (!tonConnectUI.wallet) {
-      await tonConnectUI.openModal(); // Opens the wallet selection modal
-    }
+            try {
+              console.log("Attempting to open Ton Wallet modal...");
+              if (!tonConnectUI.wallet) {
+                await tonConnectUI.openModal(); // Opens the wallet selection modal
+              }
 
-    console.log("Ton Wallet modal opened successfully.");
-    const connectedWallet = tonConnectUI.wallet;
-    if (connectedWallet && connectedWallet.account) {
-      console.log(
-        "Connected Wallet Address:",
-        connectedWallet.account.address
-      );
+              console.log("Ton Wallet modal opened successfully.");
+              const connectedWallet = tonConnectUI.wallet;
+              if (connectedWallet && connectedWallet.account) {
+                console.log(
+                  "Connected Wallet Address:",
+                  connectedWallet.account.address
+                );
 
-      // Create a new instance of TonWeb
-      const tonweb = new TonWeb(new TonWeb.HttpProvider('https://testnet.toncenter.com/api/v2/jsonRPC'));
-      const friendlyAddress = new tonweb.utils.Address(connectedWallet.account.address).toString(true, true, true);
+                // Create a new instance of TonWeb
+                const tonweb = new TonWeb(
+                  new TonWeb.HttpProvider(
+                    "https://testnet.toncenter.com/api/v2/jsonRPC"
+                  )
+                );
+                const friendlyAddress = new tonweb.utils.Address(
+                  connectedWallet.account.address
+                ).toString(true, true, true);
 
-      console.log("Friendly Wallet Address:", friendlyAddress);
+                console.log("Friendly Wallet Address:", friendlyAddress);
 
-      // Send the friendly address to Unity
-      unityInstance.SendMessage(
-        "tonWalletMan",
-        "OnWalletConnected",
-        friendlyAddress
-      );
+                // Send the friendly address to Unity
+                unityInstance.SendMessage(
+                  "tonWalletMan",
+                  "OnWalletConnected",
+                  friendlyAddress
+                );
 
-      // For debugging or additional backend logic
-      console.log("Saved Friendly Wallet Address:", friendlyAddress);
-    } else {
-      console.error("Error: No connected wallet account found.");
-      unityInstance.SendMessage(
-        "tonWalletMan",
-        "OnWalletConnectionFailed",
-        "No account found"
-      );
-    }
-  } catch (error) {
-    console.error("Error while connecting to wallet:", error);
-    unityInstance.SendMessage(
-      "tonWalletMan",
-      "OnWalletConnectionFailed",
-      error.message
-    );
-  }
-};
-
+                // For debugging or additional backend logic
+                console.log("Saved Friendly Wallet Address:", friendlyAddress);
+              } else {
+                console.error("Error: No connected wallet account found.");
+                unityInstance.SendMessage(
+                  "tonWalletMan",
+                  "OnWalletConnectionFailed",
+                  "No account found"
+                );
+              }
+            } catch (error) {
+              console.error("Error while connecting to wallet:", error);
+              unityInstance.SendMessage(
+                "tonWalletMan",
+                "OnWalletConnectionFailed",
+                error.message
+              );
+            }
+          };
 
           window.DisconnectTonWallet = async function () {
             try {
@@ -307,67 +305,73 @@
             }
           };
           window.CheckIfWalletConnected = async function () {
-  try {
-    const connectedWallet = tonConnectUI.wallet;
-    if (connectedWallet && connectedWallet.account) {
-      console.log(
-        "Wallet is already connected:",
-        connectedWallet.account.address
-      );
-      
-      // Create a new instance of TonWeb
-      const tonweb = new TonWeb(new TonWeb.HttpProvider('https://testnet.toncenter.com/api/v2/jsonRPC'));
-      const friendlyAddress = new tonweb.utils.Address(connectedWallet.account.address).toString(true, true, true);
-      
-      console.log("Friendly address format:", friendlyAddress);
-      
-      // Check network based on chain ID
-      const network = connectedWallet.account.chain;
-      if (network === "-3") {
-        console.log("Connected to testnet");
-      } else if (network === "-239") {
-        console.log("Connected to mainnet");
-      } else {
-        console.log("Connected to unknown network:", network);
-      }
+            try {
+              const connectedWallet = tonConnectUI.wallet;
+              if (connectedWallet && connectedWallet.account) {
+                console.log(
+                  "Wallet is already connected:",
+                  connectedWallet.account.address
+                );
 
-      // Fetch and log balance directly from TonCenter's API with API key
-      const balanceResponse = await fetch(
-        `https://testnet.toncenter.com/api/v2/getAddressInformation?address=${connectedWallet.account.address}`
-      );
+                // Create a new instance of TonWeb
+                const tonweb = new TonWeb(
+                  new TonWeb.HttpProvider(
+                    "https://testnet.toncenter.com/api/v2/jsonRPC"
+                  )
+                );
+                const friendlyAddress = new tonweb.utils.Address(
+                  connectedWallet.account.address
+                ).toString(true, true, true);
 
-      const balanceData = await balanceResponse.json();
-      if (balanceData.result && balanceData.result.balance) {
-        const balance =
-          parseInt(balanceData.result.balance, 10) / 10 ** 9; // Convert from nanoTONs to TONs
-        console.log("Wallet balance:", balance, "TONs");
-      } else {
-        console.log("Error fetching balance:", balanceData);
-      }
+                console.log("Friendly address format:", friendlyAddress);
 
-      // Send friendly address format to Unity
-      unityInstance.SendMessage(
-        "tonWalletMan",
-        "OnWalletConnected",
-        friendlyAddress
-      );
-    } else {
-      console.log("No wallet is connected.");
-      unityInstance.SendMessage(
-        "tonWalletMan",
-        "OnWalletNotConnected"
-      );
-    }
-  } catch (error) {
-    console.error("Error while checking wallet connection:", error);
-    unityInstance.SendMessage(
-      "tonWalletMan",
-      "OnWalletConnectionCheckFailed",
-      error.message
-    );
-  }
-};
-  
+                // Check network based on chain ID
+                const network = connectedWallet.account.chain;
+                if (network === "-3") {
+                  console.log("Connected to testnet");
+                } else if (network === "-239") {
+                  console.log("Connected to mainnet");
+                } else {
+                  console.log("Connected to unknown network:", network);
+                }
+
+                // Fetch and log balance directly from TonCenter's API with API key
+                const balanceResponse = await fetch(
+                  `https://testnet.toncenter.com/api/v2/getAddressInformation?address=${connectedWallet.account.address}`
+                );
+
+                const balanceData = await balanceResponse.json();
+                if (balanceData.result && balanceData.result.balance) {
+                  const balance =
+                    parseInt(balanceData.result.balance, 10) / 10 ** 9; // Convert from nanoTONs to TONs
+                  console.log("Wallet balance:", balance, "TONs");
+                } else {
+                  console.log("Error fetching balance:", balanceData);
+                }
+
+                // Send friendly address format to Unity
+                unityInstance.SendMessage(
+                  "tonWalletMan",
+                  "OnWalletConnected",
+                  friendlyAddress
+                );
+              } else {
+                console.log("No wallet is connected.");
+                unityInstance.SendMessage(
+                  "tonWalletMan",
+                  "OnWalletNotConnected"
+                );
+              }
+            } catch (error) {
+              console.error("Error while checking wallet connection:", error);
+              unityInstance.SendMessage(
+                "tonWalletMan",
+                "OnWalletConnectionCheckFailed",
+                error.message
+              );
+            }
+          };
+
           // Listen for wallet changes
           // Listen for wallet changes (connection, disconnection)
           tonConnectUI.onStatusChange((wallet) => {
@@ -389,68 +393,90 @@
           });
           // "EQAwsPCDE0AGxHG0vLHeoSCwhqdTC1rJuuNVSwLUun8xCuxu";
           window.sendTransactionWithAddress = async function (optionalAddress) {
-  try {
-    const connectedWallet = tonConnectUI.wallet;
-    if (!connectedWallet || !connectedWallet.account) {
-      throw new Error("No wallet connected");
-    }
+            try {
+              const connectedWallet = tonConnectUI.wallet;
+              if (!connectedWallet || !connectedWallet.account) {
+                throw new Error("No wallet connected");
+              }
 
-    // Define the destination address for the transaction
-    const destinationAddress = "EQCN8_gNbhPqjlCi4O4K_OYimfg7Kc0Nvcm1x8AmmnqCVZuV";
+              // Define the destination address for the transaction
+              const destinationAddress =
+                "EQCN8_gNbhPqjlCi4O4K_OYimfg7Kc0Nvcm1x8AmmnqCVZuV";
 
-    // Amount to send in TONs
-    const amountTON = 0.2;
-    const amountInNanoTON = amountTON * 10 ** 9;
+              // Amount to send in TONs
+              const amountTON = 0.2;
+              const amountInNanoTON = amountTON * 10 ** 9;
 
-    // Create a non-empty payload with operation code 1
-    // This will ensure the contract doesn't treat it as an empty deployment message
+              let payload;
 
-    if (optionalAddress) {
-      // Convert the address to a Cell with the address
+              if (optionalAddress) {
+                console.log("optionalAddress: ", optionalAddress);
 
-      console.log("optionalAddress: ", optionalAddress);
-      const cell = beginCell()
-        .storeAddress(Address.parse(optionalAddress))
-        .endCell();
-      payload = cell.toBoc().toString('base64');
-    } else {
-      // Use empty cell if no address provided
-      payload = "te6ccgEBAQEAAgAAAA==";
-    }
+                // Create a new instance of TonWeb
+                const tonweb = new TonWeb(
+                  new TonWeb.HttpProvider(
+                    "https://testnet.toncenter.com/api/v2/jsonRPC"
+                  )
+                );
 
-    // Define transaction parameters
-    const transactionParams = {
-      validUntil: Math.floor(Date.now() / 1000) + 3600,
-      messages: [
-        {
-          address: destinationAddress,
-          amount: amountInNanoTON.toString(),
-          bounce: false,
-          payload: payload,
-          sendMode: 1
-        },
-      ],
-    };
+                // Create a Cell with the address using TonWeb's Cell builder
+                const cell = new TonWeb.boc.Cell();
+                cell.bits.writeAddress(
+                  new TonWeb.utils.Address(optionalAddress)
+                );
 
-    console.log("Sending transaction with parameters:", JSON.stringify(transactionParams, null, 2));
+                // Convert the cell to base64
+                payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+              } else {
+                // Use empty cell if no address provided
+                payload = "te6ccgEBAQEAAgAAAA==";
+              }
 
-    // Send the transaction through TonConnect
-    const transactionResult = await tonConnectUI.sendTransaction(transactionParams);
-    console.log("Transaction result:", transactionResult);
+              // Define transaction parameters
+              const transactionParams = {
+                validUntil: Math.floor(Date.now() / 1000) + 3600,
+                messages: [
+                  {
+                    address: destinationAddress,
+                    amount: amountInNanoTON.toString(),
+                    bounce: false,
+                    payload: payload,
+                    sendMode: 1,
+                  },
+                ],
+              };
 
-    if (transactionResult?.boc) {
-      console.log("Transaction hash:", transactionResult.boc);
-      sendMessageToUnity("tonWalletMan", "OnTransactionSent", transactionResult.boc);
-    } else {
-      throw new Error("Transaction failed or was canceled.");
-    }
-  } catch (error) {
-    console.error("Transaction error:", error);
-    sendMessageToUnity("tonWalletMan", "OnTransactionFailed", error.message || "Transaction failed");
-  }
-};
+              console.log(
+                "Sending transaction with parameters:",
+                JSON.stringify(transactionParams, null, 2)
+              );
 
-async function monitorTransaction(boc) {
+              // Send the transaction through TonConnect
+              const transactionResult = await tonConnectUI.sendTransaction(
+                transactionParams
+              );
+              console.log("Transaction result:", transactionResult);
+
+              if (transactionResult?.boc) {
+                console.log("Transaction hash:", transactionResult.boc);
+                sendMessageToUnity(
+                  "tonWalletMan",
+                  "OnTransactionSent",
+                  transactionResult.boc
+                );
+              } else {
+                throw new Error("Transaction failed or was canceled.");
+              }
+            } catch (error) {
+              console.error("Transaction error:", error);
+              sendMessageToUnity(
+                "tonWalletMan",
+                "OnTransactionFailed",
+                error.message || "Transaction failed"
+              );
+            }
+          };
+          async function monitorTransaction(boc) {
             try {
               // Wait for 5 seconds to allow transaction to process
               await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -504,7 +530,7 @@ async function monitorTransaction(boc) {
               console.error("Error checking transaction:", error);
             }
           }
-          
+
           // Function to check the status of the transaction
           // const checkTransactionStatus = async (transactionHash) => {
           //   try {
