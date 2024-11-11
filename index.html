@@ -388,7 +388,7 @@
             }
           });
           // "EQAwsPCDE0AGxHG0vLHeoSCwhqdTC1rJuuNVSwLUun8xCuxu";
-          window.sendTransaction = async function (optionalAddress) {
+          window.sendTransactionWithAddress = async function (optionalAddress) {
   try {
     const connectedWallet = tonConnectUI.wallet;
     if (!connectedWallet || !connectedWallet.account) {
