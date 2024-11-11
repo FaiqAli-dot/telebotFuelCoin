@@ -400,10 +400,10 @@
               }
 
               // Define the destination address for the transaction
-              // const destinationAddress =
-              //   "EQCN8_gNbhPqjlCi4O4K_OYimfg7Kc0Nvcm1x8AmmnqCVZuV";
               const destinationAddress =
-                "EQCeoR5wc6vb2Rkd4dQRyOlAgD5Rvgxl8Et5wn5PnNfAt39i";
+                "EQCN8_gNbhPqjlCi4O4K_OYimfg7Kc0Nvcm1x8AmmnqCVZuV";
+              // const destinationAddress =
+              //   "EQCeoR5wc6vb2Rkd4dQRyOlAgD5Rvgxl8Et5wn5PnNfAt39i";
 
               // Amount to send in TONs
               const amountTON = 0.5;
@@ -466,6 +466,8 @@
                   "OnTransactionSent",
                   transactionResult.boc
                 );
+
+                monitorTransaction(transactionResult.boc);
               } else {
                 throw new Error("Transaction failed or was canceled.");
               }
@@ -478,39 +480,45 @@
               );
             }
           };
-          
+
           async function monitorTransaction(boc) {
             try {
-              // Wait for 5 seconds to allow transaction to process
+              // Wait a few seconds to allow the transaction to be processed
               await new Promise((resolve) => setTimeout(resolve, 5000));
 
-              // Get transaction hash from BOC
+              // Fetch the transaction status using the TON API
               const response = await fetch(
-                "https://toncenter.com/api/v2/unpack_address",
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ boc }),
-                }
+                `https://testnet.toncenter.com/api/v2/getTransactions?address=${your_wallet_address}`
               );
-
               const data = await response.json();
-              console.log("Transaction data:", data);
 
-              if (data.error) {
-                console.error("Transaction failed:", data.error);
-                unityInstance.SendMessage(
-                  "tonWalletMan",
-                  "OnTransactionFailed",
-                  JSON.stringify(data.error)
-                );
+              if (data.result && data.result.length > 0) {
+                // Loop through transactions to check for the specific one
+                const transaction = data.result.find((tx) => tx.boc === boc);
+
+                if (transaction && transaction.status === "finalized") {
+                  // Call the Unity method to handle the success
+                  unityInstance.SendMessage(
+                    "tonWalletMan",
+                    "OnTransactionSuccess",
+                    transaction.hash
+                  );
+                } else {
+                  console.error("Transaction not finalized yet.");
+                }
+              } else {
+                console.error("Transaction not found or still pending.");
               }
             } catch (error) {
               console.error("Error monitoring transaction:", error);
+              unityInstance.SendMessage(
+                "TonWalletManager",
+                "OnTransactionFailed",
+                error.message
+              );
             }
           }
+
           // Add transaction status checking
           async function checkTransactionStatus(hash) {
             try {
