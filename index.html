@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Telegram_Game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css?v=1.139" />
+    <link rel="stylesheet" href="TemplateData/style.css?v=1.140" />
 
     <!-- Load the TonConnect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -393,97 +393,94 @@
           });
           // "EQAwsPCDE0AGxHG0vLHeoSCwhqdTC1rJuuNVSwLUun8xCuxu";
           window.sendTransactionWithAddress = async function (optionalAddress) {
-            try {
-              const connectedWallet = tonConnectUI.wallet;
-              if (!connectedWallet || !connectedWallet.account) {
-                throw new Error("No wallet connected");
-              }
+    try {
+        const connectedWallet = tonConnectUI.wallet;
+        if (!connectedWallet || !connectedWallet.account) {
+            throw new Error("No wallet connected");
+        }
 
-              // Define the destination address for the transaction
-              const destinationAddress =
-                "EQCN8_gNbhPqjlCi4O4K_OYimfg7Kc0Nvcm1x8AmmnqCVZuV";
-              // const destinationAddress =
-              //   "EQCeoR5wc6vb2Rkd4dQRyOlAgD5Rvgxl8Et5wn5PnNfAt39i";
+        // Create a new instance of TonWeb
+        const tonweb = new TonWeb(
+            new TonWeb.HttpProvider(
+                "https://testnet.toncenter.com/api/v2/jsonRPC"
+            )
+        );
 
-              // Amount to send in TONs
-              const amountTON = 0.3;
-              const amountInNanoTON = amountTON * 10 ** 9;
+        // Define friendlyAddress at the start to make it accessible throughout the function
+        const friendlyAddress = new tonweb.utils.Address(
+            connectedWallet.account.address
+        ).toString(true, true, true);
 
-              let payload;
+        console.log("Using friendly address:", friendlyAddress);
 
-              if (optionalAddress) {
-                console.log("optionalAddress: ", optionalAddress);
+        // Define the destination address for the transaction
+        const destinationAddress = "EQCN8_gNbhPqjlCi4O4K_OYimfg7Kc0Nvcm1x8AmmnqCVZuV";
 
-                // Create a new instance of TonWeb
-                const tonweb = new TonWeb(
-                  new TonWeb.HttpProvider(
-                    "https://testnet.toncenter.com/api/v2/jsonRPC"
-                  )
-                );
+        // Amount to send in TONs
+        const amountTON = 0.3;
+        const amountInNanoTON = amountTON * 10 ** 9;
 
-                // Create a Cell with the address using TonWeb's Cell builder
-                const cell = new TonWeb.boc.Cell();
-                cell.bits.writeAddress(
-                  new TonWeb.utils.Address(optionalAddress)
-                );
+        let payload;
 
-                // Convert the cell to base64
-                payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
-              } else {
-                // Use empty cell if no address provided
-                payload = "te6ccgEBAQEAAgAAAA==";
-              }
+        if (optionalAddress) {
+            console.log("optionalAddress: ", optionalAddress);
 
-              // Define transaction parameters
-              const transactionParams = {
-                validUntil: Math.floor(Date.now() / 1000) + 3600,
-                messages: [
-                  {
+            // Create a Cell with the address using TonWeb's Cell builder
+            const cell = new TonWeb.boc.Cell();
+            cell.bits.writeAddress(new TonWeb.utils.Address(optionalAddress));
+
+            // Convert the cell to base64
+            payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+        } else {
+            // Use empty cell if no address provided
+            payload = "te6ccgEBAQEAAgAAAA==";
+        }
+
+        // Define transaction parameters
+        const transactionParams = {
+            validUntil: Math.floor(Date.now() / 1000) + 3600,
+            messages: [
+                {
                     address: destinationAddress,
                     amount: amountInNanoTON.toString(),
                     bounce: false,
                     payload: payload,
                     sendMode: 1,
-                  },
-                ],
-              };
+                },
+            ],
+        };
 
-              console.log(
-                "Sending transaction with parameters:",
-                JSON.stringify(transactionParams, null, 2)
-              );
+        console.log(
+            "Sending transaction with parameters:",
+            JSON.stringify(transactionParams, null, 2)
+        );
 
-              // Send the transaction through TonConnect
-              const transactionResult = await tonConnectUI.sendTransaction(
-                transactionParams
-              );
-              console.log("Transaction result:", transactionResult);
-              const friendlyAddress = new tonweb.utils.Address(
-            connectedWallet.account.address
-        ).toString(true, true, true);
+        // Send the transaction through TonConnect
+        const transactionResult = await tonConnectUI.sendTransaction(transactionParams);
+        console.log("Transaction result:", transactionResult);
 
-        console.log("Using friendly address:", friendlyAddress);
-              if (transactionResult?.boc) {
-                console.log("Transaction hash:", transactionResult.boc);
-                sendMessageToUnity(
-                  "tonWalletMan",
-                  "OnTransactionSent",
-                  transactionResult.boc
-                );
-
-                monitorTransaction(transactionResult.boc, friendlyAddress);
-              } else {
-                throw new Error("Transaction failed or was canceled.");
-              }
-            } catch (error) {
-              console.error("Transaction error:", error);
-              sendMessageToUnity(
+        if (transactionResult?.boc) {
+            console.log("Transaction hash:", transactionResult.boc);
+            sendMessageToUnity(
                 "tonWalletMan",
-                "OnTransactionFailed",
-                error.message || "Transaction failed"
-              );
-            }
-          };
+                "OnTransactionSent",
+                transactionResult.boc
+            );
+
+            // Start monitoring the transaction and pass the friendly address
+            monitorTransaction(transactionResult.boc, friendlyAddress);
+        } else {
+            throw new Error("Transaction failed or was canceled.");
+        }
+    } catch (error) {
+        console.error("Transaction error:", error);
+        sendMessageToUnity(
+            "tonWalletMan",
+            "OnTransactionFailed",
+            error.message || "Transaction failed"
+        );
+    }
+};
 
           async function monitorTransaction(boc, friendlyAddress) {
             try {
