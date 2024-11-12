@@ -484,6 +484,20 @@
     }
 };
 
+window.ShareOnTelegramStory = async function (link, message){
+        if (window.Telegram && window.Telegram.WebApp) {
+            const encodedUrl = encodeURIComponent(link);
+            const encodedMessage = encodeURIComponent(message);
+            const shareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedMessage}`;
+            
+            window.Telegram.WebApp.openTelegramLink(shareUrl);
+            console.log("Sharing on Telegram Story...");
+        } else {
+            console.error("Telegram WebApp is not available. Make sure you are running as a Telegram Web App.");
+        }
+    }
+
+
 async function monitorTransaction(boc, friendlyAddress) {
     const timeout = 2 * 60 * 1000; // 2 minutes in milliseconds
     const interval = 5000; // Check every 5 seconds
