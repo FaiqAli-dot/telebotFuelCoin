@@ -13,6 +13,7 @@
     <script src="https://unpkg.com/@tonconnect/sdk@3.0.0/dist/tonconnect-sdk.min.js"></script>
     <!-- Load TonWeb for contract state decoding -->
     <script src="https://unpkg.com/tonweb@latest/dist/tonweb.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
 
   <body>
@@ -484,18 +485,38 @@
     }
 };
 
-window.ShareOnTelegramStory = async function (link, message){
-        if (window.Telegram && window.Telegram.WebApp) {
-            const encodedUrl = encodeURIComponent(link);
-            const encodedMessage = encodeURIComponent(message);
-            const shareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedMessage}`;
-            
-            window.Telegram.WebApp.openTelegramLink(shareUrl);
-            console.log("Sharing on Telegram Story...");
-        } else {
-            console.error("Telegram WebApp is not available. Make sure you are running as a Telegram Web App.");
+window.ShareOnTelegramStoryHtml = async function (link, message) {
+    // First try to initialize Telegram WebApp if not already done
+    if (!window.Telegram?.WebApp) {
+        try {
+            // Wait for Telegram WebApp to be ready
+            await new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = 'https://telegram.org/js/telegram-web-app.js';
+                script.onload = resolve;
+                document.head.appendChild(script);
+            });
+        } catch (error) {
+            console.error("Failed to load Telegram WebApp script:", error);
         }
     }
+
+    // Now check again if Telegram WebApp is available
+    if (window.Telegram?.WebApp) {
+        const encodedUrl = encodeURIComponent(link);
+        const encodedMessage = encodeURIComponent(message);
+        const shareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedMessage}`;
+        
+        // Use the correct method for stories
+        window.Telegram.WebApp.switchInlineQuery(message, ['stories']);
+        console.log("Sharing on Telegram Story...");
+    } else {
+        console.error("Telegram WebApp is not available. Make sure you are running as a Telegram Web App.");
+        // Fallback to regular share
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(message)}`;
+        window.open(shareUrl, '_blank');
+    }
+}
 
 
 async function monitorTransaction(boc, friendlyAddress) {
